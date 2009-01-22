@@ -117,6 +117,8 @@ the example MATLAB code Simple Square)
 """
 
 if __name__ == "__main__":
+    import time
+    
     vsg = PyVSG()
 
     # show page 1, draw on 0
