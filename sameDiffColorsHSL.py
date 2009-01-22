@@ -106,7 +106,7 @@ class Exp:
                 self.stimPositions['right'] = self.convertFromPresentationStyleCoordinates((75,0))
                 
                 self.numBlocks = 10
-                self.numPracticeTrials = 10
+                self.numPracticeTrials = 5
                 self.numStaircaseTrials = 120
                 self.takeBreakEveryXTrials = 200 
                 self.finalText              = "You've come to the end of the experiment.  Thank you for participating."
@@ -416,14 +416,18 @@ class ExpPresentation(trial):
 
                 # First clear screen and wait for some specified time
                 
-                # VE: self.setAndPresentStimulus([])
+                # VE:
+                self.setAndPresentStimulus([])
+                # VISAGE
                 vsg.vsgSetDrawPage(0)
                 vsg.vsgSetDisplayPage(1)
 
                 time.sleep(self.experiment.preFixationDelay)
 
-                # VE: self.presentStimulus(self.viewport_fixation) #show fixation cross
-                white = vsgTRIVIAL(1.0, 1.0, 1.0)
+                # VE:
+                self.presentStimulus(self.viewport_fixation) #show fixation cross
+                # VISAGE:
+                white = PyVSG.vsgTRIVIAL(1.0, 1.0, 1.0)
                 vsg.vsgPaletteSet(1, white)
                 vsg.vsgSetPen1(1)
                 vsg.vsgDrawRect(0,0,10,2)
@@ -434,7 +438,9 @@ class ExpPresentation(trial):
                 playAudioCue(self)
                 time.sleep(self.experiment.postFixationDelay)
 
-                # VE:self.setAndPresentStimulus([self.fix1, self.fix2,self.firstStim, self.secondStim]) #fixation + first pic + second pic
+                # VE:
+                self.setAndPresentStimulus([self.fix1, self.fix2,self.firstStim, self.secondStim]) #fixation + first pic + second pic
+                # VISAGE
                 vsg.vsgSetDrawPage(1)
                 # cross
                 vsg.vsgPaletteSet(1, white)
@@ -442,16 +448,16 @@ class ExpPresentation(trial):
                 vsg.vsgDrawRect(0,0,10,2)
                 vsg.vsgDrawRect(0,0,2,10)
                 # left box
-                leftColour = vsgTRIVIAL(1.0,0,0)
+                leftColour = PyVSG.vsgTRIVIAL(1.0,0,0)
                 vsg.vsgPaletteSet(2, leftColour)
                 vsg.vsgSetPen1(2)
-                vsg.vsgDrawRect(-200,-200, 100, 100)
+                vsg.vsgDrawRect(-125, 0, 100, 100)
                 # right box
-                rightColour = vsgTRIVIAL(1.0,0,0)
+                rightColour = PyVSG.vsgTRIVIAL(0.5,0,0)
 #                rightColour.a = color2.0
                 vsg.vsgPaletteSet(3, rightColour)
                 vsg.vsgSetPen1(3)
-                vsg.vsgDrawRect(-200,200, 100, 100)
+                vsg.vsgDrawRect(125, 0, 100, 100)
                 # switch to display 1
                 vsg.vsgSetDisplayPage(1)
                 
@@ -579,12 +585,6 @@ class ExpPresentation(trial):
                 print "getPsychometricFunctions"
                 self.locations = ["left","right"]
 
-                #if whichPart == "practice":
-                #       numTrials = self.experiment.numPracticeTrials
-                #       numBlocks = 1
-                #else:
-                #       numStairCaseTrials = 60 #fix this
-                #       numBlocks = self.experiment.numBlocks
 
                 #set up Quest objects (staircases)
                 self.qRedL = self.setUpQuest()
@@ -602,11 +602,15 @@ class ExpPresentation(trial):
                 self.curDistanceBlueL =         self.qBlueL.tGuess
                 self.curDistanceBlueNL =        self.qBlueNL.tGuess
 
+                if whichPart == "practice":
+                        print "doing practice run"
+                        numTrials = self.experiment.numPracticeTrials
+                        numBlocks = 1
+                else:
+                        numTrials = len(self.trialListMatrix)
+                        numBlocks = self.experiment.numBlocks
 
-                numTrials = len(self.trialListMatrix)
-                numBlocks = self.experiment.numBlocks
-
-                print "for curBlock in numBlocks"
+                print "Starting sequence: blocks=%d, trials per block=%d" % (numBlocks, numTrials)
                 
                 for curBlock in range(numBlocks):                       
                         random.shuffle(self.trialListMatrix) #shuffle the trial list (once per block)
@@ -676,12 +680,16 @@ print "AJB2"
 currentPresentation = ExpPresentation(currentExp)
 print "AJB3"                    
 currentPresentation.initializeExperiment()
+
+# Show the instrcution text and wait for a button press
 pygame.event.clear() #clear any residual button presses
 currentPresentation.showWrappedText(currentExp.instructions) #show the instructions
-#currentPresentation.showText(currentExp.practiceTrials)
-#currentPresentation.cycleThroughExperimentTrials("practice") #do it
-#currentPresentation.showText(currentExp.realTrials)
-print "7"                       
-currentPresentation.getPsychometricFunctions("questNothingVsColor") #do it
-print "8"                       
-currentPresentation.showWrappedText(currentExp.thanks) #thank the subject
+
+# Run the experiment
+#
+# Passing "practice" forces a single itteration for the sake of testing
+#currentPresentation.getPsychometricFunctions("questNothingVsColor")
+currentPresentation.getPsychometricFunctions("practice")
+
+# Thank the subject
+currentPresentation.showWrappedText(currentExp.thanks)
