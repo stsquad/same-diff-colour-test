@@ -48,6 +48,15 @@ class PyVSG:
     
 
     """
+    Set the current drawing page, by default switching to a draw page
+    clears it.
+    """
+    def vsgSetDrawPage(self, page, clear=True):
+        res = self.vsgDll.vsgSetDrawPage(c_ulong(vsgVIDEOPAGE), c_ulong(page), c_ulong(0))
+        if res < 0:
+            print "vsgSetDrawPage failed"
+
+    """
     Set the colour index n to colour
     """
     def vsgPaletteSet(self, index, colour):
@@ -87,6 +96,11 @@ the example MATLAB code Simple Square)
 
 if __name__ == "__main__":
     vsg = PyVSG()
+
+    # show page 1, draw on 0
+    vsg.vsgSetDrawPage(1)
+    vsg.vsgSetDisplayPage(0)
+    
     red = vsgTRIVIAL(1.0, 0, 0)
     vsg.vsgPaletteSet(1, red)
     vsg.vsgSetPen1(1)
@@ -102,8 +116,8 @@ if __name__ == "__main__":
         vsg.vsgSetPen1(index)
         vsg.vsgDrawRect(0,0,size,size)
 
-    """ Finally ensure we display the page we have been drawing on """
-    
+    # And now switch to page 0
+    vsg.vsgSetDisplayPage(1)
         
     
 
