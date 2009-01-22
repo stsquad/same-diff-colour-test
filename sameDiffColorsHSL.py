@@ -86,9 +86,6 @@ class Exp:
                 VisionEgg.config.VISIONEGG_SCREEN_W = vsg.width
                 VisionEgg.config.VISIONEGG_SCREEN_H = vsg.height
                 self.screen = get_default_screen()
-
-
-
                 self.screen.parameters.bgcolor = (0.0,0.0,0.0,1.0)
 
                 
@@ -153,6 +150,7 @@ class Exp:
                 
         def loadPictures(self,directory):
                 """ Load all the pics .. NEED TO CHECK TO MAKE SURE THEY EXIST """
+                print "loadPictures %s" % (directory)
                 global path
                 objectMatrix = []
                 picList = glob.glob(os.path.join(path,directory,'*gif'))
@@ -188,7 +186,17 @@ class Exp:
         def convertFromPresentationStyleCoordinates(self,(xy),width=0):
                 x=xy[0]
                 y=xy[1]
-                return (x + self.screen.size[0]/2 - width/2, y + self.screen.size[1]/2)
+                print "convertFromPresentationStyleCoordinates %d x %d" % (x, y)
+
+                # Vision Egg version
+                nx=x + self.screen.size[0]/2 - width/2
+                ny=y + self.screen.size[1]/2
+
+                # VISAGE version
+                #nx=x + vsg.width/2 - width/2
+                #ny=y + vsg.height/2
+
+                return (nx,ny)
                         
                 
 class trial(Exp):
@@ -204,27 +212,31 @@ class ExpPresentation(trial):
                 self.experiment = experiment
 
 
-                self.fix1 =             Target2D(
-                                                anchor = 'center',
-                                                color = (1,1,1),
-                                                on = 1,
-                                                orientation = 0,
-                                                position = self.experiment.convertFromPresentationStyleCoordinates((0,0)),
-                                                size = (2,15))
+                self.fix1 = Target2D(
+                                anchor = 'center',
+                                color = (1,1,1),
+                                on = 1,
+                                orientation = 0,
+                                position = self.experiment.convertFromPresentationStyleCoordinates((0,0)),
+                                size = (2,15)
+                                )
 
-                self.fix2 =     Target2D(
-                                                anchor = 'center',
-                                                color = (1,1,1),
-                                                on = 1,orientation = 0,
-                                                position = self.experiment.convertFromPresentationStyleCoordinates((0,0)),
-                                                size = (15,2))
+                self.fix2 = Target2D(
+                                anchor = 'center',
+                                color = (1,1,1),
+                                on = 1,orientation = 0,
+                                position = self.experiment.convertFromPresentationStyleCoordinates((0,0)),
+                                size = (15,2)
+                                )
 
-                self.text =     Text(
-                                                anchor = 'center',
-                                                text = 'testing',
-                                                color = (1,1,1),
-                                                position = self.experiment.convertFromPresentationStyleCoordinates((0,0)))
-                                                        
+
+                self.text = Text(
+                                   anchor = 'center',
+                                   text = 'testing',
+                                   color = (1,1,1),
+                                   position = self.experiment.convertFromPresentationStyleCoordinates((0,0))
+                                )
+
                 self.firstStim  =               Target2D(
                                                 anchor = 'center',
                                                 color = (1,1,1),
@@ -241,9 +253,9 @@ class ExpPresentation(trial):
                                                 position = self.experiment.convertFromPresentationStyleCoordinates((125,0)),
                                                 size = (100,100))
 
+                # Define all the sounds
                 self.wrongSound =       pygame.mixer.Sound(path + "\\stimuli\\" + "Buzz3.wav")
-                self.correctSound = pygame.mixer.Sound(path + "\\stimuli\\" + "Bleep3.wav")
-
+                self.correctSound =     pygame.mixer.Sound(path + "\\stimuli\\" + "Bleep3.wav")
                 self.carrierSound =     pygame.mixer.Sound(path + "\\stimuli\\" + "areTheTwo.wav")
                 self.redSound =         pygame.mixer.Sound(path + "\\stimuli\\" + "reds.wav")
                 self.greenSound =       pygame.mixer.Sound(path + "\\stimuli\\" + "greens.wav")
@@ -253,8 +265,8 @@ class ExpPresentation(trial):
                 self.diffSound =        pygame.mixer.Sound(path + "\\stimuli\\" + "diff.wav")
                                                 
                                                 
-                self.viewport_fixation  = Viewport( screen=self.experiment.screen, stimuli=[self.fix1,self.fix2] ) #fixation cross
-                self.viewport_trial       = Viewport( screen = self.experiment.screen) #set dynamically below
+                self.viewport_fixation  = Viewport( screen = self.experiment.screen, stimuli=[self.fix1,self.fix2] ) #fixation cross
+                self.viewport_trial     = Viewport( screen = self.experiment.screen) #set dynamically below
 
                 
         def setUpQuest(self):
@@ -368,9 +380,19 @@ class ExpPresentation(trial):
                 trial.append(str(respVars['rt']))
                 trial.append(str(respVars['isRight']))
                 return trial
-                
+
+        #
+        # prensetExperimentTrial
+        #
+        # Run a single experiment and gather the subjects response. Returns
+        # an isRight/isWrong response for the next iterations calculations
+        #
+   
         def presentExperimentTrial(self,curBlock,trialIndex,whichPart,color1,color2):
-        
+
+                #
+                # Play the sound cue. 
+                #
                 def playAudioCue(self):
                         def playAndWait(sound):
                                 sound.play()
@@ -382,29 +404,63 @@ class ExpPresentation(trial):
 
                         clock = pygame.time.Clock()
                         playAndWait(self.carrierSound)
+                        
                         if isLabel==1:
                                 playAndWait(colorSoundsDict[colorCategory])
-                                #print "skipping"
                         else:
                                 playAndWait(self.colorSound)
+
                         playAndWait(self.sameSound)
-                        #if random.random()>.5:
-                        #       playAndWait(self.sameSound)
-                        #else:
-                        #       playAndWait(self.diffSound)
-        
-                self.setAndPresentStimulus([]) #blank
-                time.sleep(self.experiment.preFixationDelay) 
-                self.presentStimulus(self.viewport_fixation) #show fixation cross
+
+                # start of presentExperimentTrial
+
+                # First clear screen and wait for some specified time
+                
+                # VE: self.setAndPresentStimulus([])
+                vsg.vsgSetDrawPage(0)
+                vsg.vsgSetDisplayPage(1)
+
+                time.sleep(self.experiment.preFixationDelay)
+
+                # VE: self.presentStimulus(self.viewport_fixation) #show fixation cross
+                white = vsgTRIVIAL(1.0, 1.0, 1.0)
+                vsg.vsgPaletteSet(1, white)
+                vsg.vsgSetPen1(1)
+                vsg.vsgDrawRect(0,0,10,2)
+                vsg.vsgDrawRect(0,0,2,10)
+                vsg.vsgSetDisplayPage(0)
+                
+                # Play the audio cue and wait
                 playAudioCue(self)
-                time.sleep(self.experiment.postFixationDelay) 
+                time.sleep(self.experiment.postFixationDelay)
+
+                # VE:self.setAndPresentStimulus([self.fix1, self.fix2,self.firstStim, self.secondStim]) #fixation + first pic + second pic
+                vsg.vsgSetDrawPage(1)
+                # cross
+                vsg.vsgPaletteSet(1, white)
+                vsg.vsgSetPen1(1)
+                vsg.vsgDrawRect(0,0,10,2)
+                vsg.vsgDrawRect(0,0,2,10)
+                # left box
+                leftColour = vsgTRIVIAL(1.0,0,0)
+                vsg.vsgPaletteSet(2, leftColour)
+                vsg.vsgSetPen1(2)
+                vsg.vsgDrawRect(-200,-200, 100, 100)
+                # right box
+                rightColour = vsgTRIVIAL(1.0,0,0)
+#                rightColour.a = color2.0
+                vsg.vsgPaletteSet(3, rightColour)
+                vsg.vsgSetPen1(3)
+                vsg.vsgDrawRect(-200,200, 100, 100)
+                # switch to display 1
+                vsg.vsgSetDisplayPage(1)
+                
                 responded = False
                 timeElapsed = False
-                self.setAndPresentStimulus([self.fix1, self.fix2,self.firstStim, self.secondStim]) #fixation + first pic + second pic
                 pygame.event.clear() #discount any keypresses
                 responseStart = time.time()
                 while not responded: 
-                        self.setAndPresentStimulus([self.fix1, self.fix2,self.firstStim, self.secondStim]) #fixation + first pic + second pic
+                        # VE: self.setAndPresentStimulus([self.fix1, self.fix2,self.firstStim, self.secondStim]) #fixation + first pic + second pic
                         for event in pygame.event.get(pygame.KEYDOWN):
                                 if event.key == self.experiment.sameResp or event.key == self.experiment.diffResp:
                                         response = event.key
@@ -519,7 +575,7 @@ class ExpPresentation(trial):
                                         self.curDistance = self.curDistanceBlueL
                                 else:
                                         self.curDistance = self.curDistanceBlueNL
-                                
+
                 print "getPsychometricFunctions"
                 self.locations = ["left","right"]
 
