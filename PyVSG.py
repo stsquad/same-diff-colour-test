@@ -13,12 +13,26 @@ The DLL thunking is all handled by the ctypes package
 import sys
 from ctypes import *
 
+# Constants
 vsgVIDEOPAGE=256;
 
+# colour space
+vsgCS_CIE1931            = 0 # 1931 CIE, x,y,luminance 
+vsgCS_DKLPolar1984       = 1 # Derrington, Krauskopf, Lennie 
+vsgCS_HSV                = 2 # Hue, saturation, value 
+vsgCS_RGB                = 3 # RGB colour in range 0..1 
+vsgCS_SML                = 4 # S,M,L cones on separate axes 
+vsgCS_CIE1976            = 5 # 1976 CIE u',v',luminance 
+vsgCS_MacLeodBoynton1979 = 6 # Constant S, M&L and Luminance 
+vsgCS_RGBDAC             = 7 # RGB Space converted into DAC range 
+
+# The vsgTrivial contains 3 values. By default this maps onto RGB
+# but (we think?) this can be changed with vsgChangeColorSpace
+
 class vsgTRIVIAL(Structure):
-    _fields_ = [ ("red", c_double),
-                 ("green", c_double),
-                 ("blue", c_double) ]
+    _fields_ = [ ("a", c_double),
+                 ("b", c_double),
+                 ("c", c_double) ]
     
 class PyVSG:
 
@@ -55,6 +69,14 @@ class PyVSG:
         res = self.vsgDll.vsgSetDrawPage(c_ulong(vsgVIDEOPAGE), c_ulong(page), c_ulong(0))
         if res < 0:
             print "vsgSetDrawPage failed"
+
+    """
+    Set the colour space of the visage system
+    """
+    def vsgSetColourSpace(self, colour):
+        res = self.vsgDll.vsgSetColourSpace(c_ulong(colour))
+        if res < 0:
+            print "vsgSetColourSpace failed"
 
     """
     Set the colour index n to colour
@@ -110,7 +132,7 @@ if __name__ == "__main__":
     index = 1;
     while index<255:
         index = index + 1
-        red.red = red.red*0.95
+        red.a = red.a*0.95
         size = size * 0.95
         vsg.vsgPaletteSet(index, red)
         vsg.vsgSetPen1(index)
@@ -118,6 +140,29 @@ if __name__ == "__main__":
 
     # And now switch to page 0
     vsg.vsgSetDisplayPage(1)
+
+    # sleep for a bit
+    print "Sleeping a bit"
+    time.sleep(5)
+
+    print "Switching colour space"
+    vsg.vsgSetColourSpace(vsgCS_CIE1976)
+    # According to wikipedia L=0..100 u,v=+/-100 but I'm sticking with float
+    maybeMagenta = vsgTRIVIAL(0.4,0.4,0.4)
+    vsg.vsgSetDrawPage(0)
+    vsg.vsgPaletteSet(1, maybeMagenta)
+    vsg.vsgSetPen1(1)
+    vsg.vsgDrawRect(0,0,vsg.height/2, vsg.height/2)
+    vsg.vsgSetDisplayPage(0)
+
+    maybeMagenta.a = 0.8    # Brighter?
+    vsg.vsgPaletteSet(2, maybeMagenta)
+    vsg.vsgSetPen1(2)
+    vsg.vsgDrawRect(0,0,vsg.height/1.5, vsg.height/4)
+    
+
+    
+    
         
     
 
