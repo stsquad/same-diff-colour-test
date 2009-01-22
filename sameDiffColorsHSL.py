@@ -448,13 +448,12 @@ class ExpPresentation(trial):
                 vsg.vsgDrawRect(0,0,10,2)
                 vsg.vsgDrawRect(0,0,2,10)
                 # left box
-                leftColour = PyVSG.vsgTRIVIAL(1.0,0,0)
+                leftColour = PyVSG.vsgTRIVIAL(color1[0],color1[1],color1[2])
                 vsg.vsgPaletteSet(2, leftColour)
                 vsg.vsgSetPen1(2)
                 vsg.vsgDrawRect(-125, 0, 100, 100)
                 # right box
-                rightColour = PyVSG.vsgTRIVIAL(0.5,0,0)
-#                rightColour.a = color2.0
+                rightColour = PyVSG.vsgTRIVIAL(color2[0],color2[1],color2[2])
                 vsg.vsgPaletteSet(3, rightColour)
                 vsg.vsgSetPen1(3)
                 vsg.vsgDrawRect(125, 0, 100, 100)
@@ -463,7 +462,7 @@ class ExpPresentation(trial):
                 
                 responded = False
                 timeElapsed = False
-                pygame.event.clear() #discount any keypresses
+                pygame.event.clear() #d  count any keypresses
                 responseStart = time.time()
                 while not responded: 
                         # VE: self.setAndPresentStimulus([self.fix1, self.fix2,self.firstStim, self.secondStim]) #fixation + first pic + second pic
@@ -674,11 +673,9 @@ class ExpPresentation(trial):
 This is the start of the Experiment
 """
 
-print "AJB1"                    
+# Set up the experiment
 currentExp = Exp()
-print "AJB2"                    
 currentPresentation = ExpPresentation(currentExp)
-print "AJB3"                    
 currentPresentation.initializeExperiment()
 
 # Show the instrcution text and wait for a button press
