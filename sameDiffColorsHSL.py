@@ -61,17 +61,17 @@ class Exp:
         
                 #this is where the subject variables go.  'any' means any value is allowed as long as it's the correct type (str, int, etc.) the numbers 1 and 2 control the order in which the prompts are displayed (dicts have no natural order)
                 self.allSubjVariables = {'1':  {'name' : 'subjCode', 
-                                                                                'prompt' : 'Enter Subject Code: ', 
-                                                                                'options': ('any'), 
-                                                                                'type' : str}, 
-                                                                 '2' : {'name' : 'whichSame', 
-                                                                                'prompt' : 'Which Key for Same: z or /: ', 
-                                                                                'options' : ("Z","/"), 
-                                                                                'type' : str},
-                                                                 '3' : {'name' : 'gender', 
-                                                                                'prompt' : 'Enter Subject Gender M/F: ', 
-                                                                                'options' : ("M","F"), 
-                                                                                'type' : str}}
+						'prompt' : 'Enter Subject Code: ', 
+						'options': ('any'), 
+						'type' : str}, 
+					 '2' : {'name' : 'whichSame', 
+						'prompt' : 'Which Key for Same: z or /: ', 
+						'options' : ("Z","/"), 
+						'type' : str},
+					 '3' : {'name' : 'gender', 
+						'prompt' : 'Enter Subject Gender M/F: ', 
+						'options' : ("M","F"), 
+						'type' : str}}
 
                 print "Getting subject variables"
                 self.getSubjVariables()
@@ -148,22 +148,6 @@ class Exp:
                                 curValue = str(curValue.upper())
                         self.subjVariables[varInfo['name']] = curValue
                 
-        def loadPictures(self,directory):
-                """ Load all the pics .. NEED TO CHECK TO MAKE SURE THEY EXIST """
-                print "loadPictures %s" % (directory)
-                global path
-                objectMatrix = []
-                picList = glob.glob(os.path.join(path,directory,'*gif'))
-                pictureMatrix = {} #initialize pictureMatrix as a dict because we'll access it by picture names
-                for i in range(len(picList)):
-                        fullPath = picList[i]
-                        fullFileName = os.path.basename(fullPath)
-                        stimFile = fullFileName[:len(fullFileName)-4] #chops off the extension
-                        surface = pygame.image.load(fullPath)
-                        stimTexture = Texture(surface)
-                        pictureMatrix[stimFile] = ((stimTexture,fullFileName,i,surface.get_width()*0.5,surface.get_height()*0.5))
-                return pictureMatrix
-
         def setupSubjectVariables(self):
                 parser = OptionParser()
                 parser.add_option("-s", "--subject-id", dest="subjid", help="specify the subject id")
@@ -213,45 +197,47 @@ class ExpPresentation(trial):
 
 
                 self.fix1 = Target2D(
-                                anchor = 'center',
-                                color = (1,1,1),
-                                on = 1,
-                                orientation = 0,
-                                position = self.experiment.convertFromPresentationStyleCoordinates((0,0)),
-                                size = (2,15)
-                                )
+			anchor = 'center',
+			color = (1,1,1),
+			on = 1,
+			orientation = 0,
+			position = self.experiment.convertFromPresentationStyleCoordinates((0,0)),
+			size = (2,15)
+			)
 
                 self.fix2 = Target2D(
-                                anchor = 'center',
-                                color = (1,1,1),
-                                on = 1,orientation = 0,
-                                position = self.experiment.convertFromPresentationStyleCoordinates((0,0)),
-                                size = (15,2)
-                                )
+			anchor = 'center',
+			color = (1,1,1),
+			on = 1,orientation = 0,
+			position = self.experiment.convertFromPresentationStyleCoordinates((0,0)),
+			size = (15,2)
+			)
 
 
                 self.text = Text(
-                                   anchor = 'center',
-                                   text = 'testing',
-                                   color = (1,1,1),
-                                   position = self.experiment.convertFromPresentationStyleCoordinates((0,0))
-                                )
+			anchor = 'center',
+			text = 'testing',
+			color = (1,1,1),
+			position = self.experiment.convertFromPresentationStyleCoordinates((0,0))
+			)
 
-                self.firstStim  =               Target2D(
-                                                anchor = 'center',
-                                                color = (1,1,1),
-                                                on = 1,
-                                                orientation = 0,
-                                                position = self.experiment.convertFromPresentationStyleCoordinates((-125,0)),
-                                                size = (100,100))
+                self.firstStim  = Target2D(
+			anchor = 'center',
+			color = (1,1,1),
+			on = 1,
+			orientation = 0,
+			position = self.experiment.convertFromPresentationStyleCoordinates((-125,0)),
+			size = (100,100)
+			)
 
-                self.secondStim  =      Target2D(
-                                                anchor = 'center',
-                                                color = (1,1,1),
-                                                on = 1,
-                                                orientation = 0,
-                                                position = self.experiment.convertFromPresentationStyleCoordinates((125,0)),
-                                                size = (100,100))
+                self.secondStim  = Target2D(
+			anchor = 'center',
+			color = (1,1,1),
+			on = 1,
+			orientation = 0,
+			position = self.experiment.convertFromPresentationStyleCoordinates((125,0)),
+			size = (100,100)
+			)
 
                 # Define all the sounds
                 self.wrongSound =       pygame.mixer.Sound(path + "\\stimuli\\" + "Buzz3.wav")
@@ -295,9 +281,9 @@ class ExpPresentation(trial):
                         position = (-100,0)
                         width=0
                 wt = WrappedText(text=message, 
-                                                position=self.experiment.convertFromPresentationStyleCoordinates(position,width),
-                                                size=(800, 600),
-                                                color=(1,1,1))
+				 position=self.experiment.convertFromPresentationStyleCoordinates(position,width),
+				 size=(800, 600),
+				 color=(1,1,1))
                 self.viewport_trial.parameters.stimuli = [wt]
                 while pygame.event.wait().type != KEYDOWN:
                         self.presentStimulus(self.viewport_trial)
@@ -382,7 +368,7 @@ class ExpPresentation(trial):
                 return trial
 
         #
-        # prensetExperimentTrial
+        # presentExperimentTrial
         #
         # Run a single experiment and gather the subjects response. Returns
         # an isRight/isWrong response for the next iterations calculations
