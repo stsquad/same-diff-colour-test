@@ -56,8 +56,8 @@ class PyVSG:
         else:
             # Don't do the calls, but do fake things
             self.active = False
-            self.height = 600
-            self.width  = 400
+            self.height = 400
+            self.width  = 600
             print "Not on Windows, we shall fake the VSG calls"
         
 
