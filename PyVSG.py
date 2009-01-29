@@ -40,25 +40,35 @@ class PyVSG:
     Boiler plate stuff to load the DLL
     """
     def __init__(self):
-        print "Loading VSGDLL"
-        self.vsgDll = windll.LoadLibrary("VSGV8.DLL")
-        n = c_int(1)
-        result = self.vsgDll.vsgInit('')
-        if result < 0:
-            print "Houston we have a problem"
+        if sys.platform == 'win32':
+            print "Loading VSGDLL"
+            self.vsgDll = windll.LoadLibrary("VSGV8.DLL")
+            n = c_int(1)
+            result = self.vsgDll.vsgInit('')
+            if result < 0:
+                print "Houston we have a problem"
+            else:
+                self.active = True
+                self.height = self.vsgDll.vsgGetScreenHeightPixels()
+                self.width = self.vsgDll.vsgGetScreenWidthPixels()
+                self.vsgDll.vsgSetDrawPage(vsgVIDEOPAGE, 0, 0)
+                print "Cool, we seems to have a %dx%d screen" % (self.height, self.width)
         else:
-            self.height = self.vsgDll.vsgGetScreenHeightPixels()
-            self.width = self.vsgDll.vsgGetScreenWidthPixels()
-            self.vsgDll.vsgSetDrawPage(vsgVIDEOPAGE, 0, 0)
-            print "Cool, we seems to have a %dx%d screen" % (self.height, self.width)
+            # Don't do the calls, but do fake things
+            self.active = False
+            self.height = 600
+            self.width  = 400
+            print "Not on Windows, we shall fake the VSG calls"
+        
 
     """
     Set the display page
     """
     def vsgSetDisplayPage(self, page):
-        res = self.vsgDll.vsgSetDisplayPage(page)
-        if res < 0:
-            print "vsgSetDisplayPage failed"
+        if self.active:
+            res = self.vsgDll.vsgSetDisplayPage(page)
+            if res < 0:
+                print "vsgSetDisplayPage failed"
     
 
     """
@@ -66,45 +76,50 @@ class PyVSG:
     clears it.
     """
     def vsgSetDrawPage(self, page, clear=True):
-        res = self.vsgDll.vsgSetDrawPage(c_ulong(vsgVIDEOPAGE), c_ulong(page), c_ulong(0))
-        if res < 0:
-            print "vsgSetDrawPage failed"
+        if self.active:
+            res = self.vsgDll.vsgSetDrawPage(c_ulong(vsgVIDEOPAGE), c_ulong(page), c_ulong(0))
+            if res < 0:
+                print "vsgSetDrawPage failed"
 
     """
     Set the colour space of the visage system
     """
     def vsgSetColourSpace(self, colour):
-        res = self.vsgDll.vsgSetColourSpace(c_ulong(colour))
-        if res < 0:
-            print "vsgSetColourSpace failed"
+        if self.active:
+            res = self.vsgDll.vsgSetColourSpace(c_ulong(colour))
+            if res < 0:
+                print "vsgSetColourSpace failed"
 
     """
     Set the colour index n to colour
     """
     def vsgPaletteSet(self, index, colour):
-        res = self.vsgDll.vsgPaletteSet(index, index, pointer(colour))
-        if res < 0:
-            print "vsgPaletteSet failed :-("
+        if self.active:
+            res = self.vsgDll.vsgPaletteSet(index, index, pointer(colour))
+            if res < 0:
+                print "vsgPaletteSet failed :-("
 
     """
     Select the drawing pen
     """
     def vsgSetPen1(self, index):
-        res = self.vsgDll.vsgSetPen1(index)
-        if res < 0:
-            print "vsgSetPen failed :-("
+        if self.active:
+            res = self.vsgDll.vsgSetPen1(index)
+            if res < 0:
+                print "vsgSetPen failed :-("
 
 
     """
     Draw a rectangle
     """
     def vsgDrawRect(self, x, y, width, height):
-        res = self.vsgDll.vsgDrawRect(c_double(x),
-                                      c_double(y),
-                                      c_double(width),
-                                      c_double(height))
-        if res < 0:
-            print "vsgDrawRect failed"
+        if self.active:
+            res = self.vsgDll.vsgDrawRect(c_double(x),
+                                          c_double(y),
+                                          c_double(width),
+                                          c_double(height))
+            if res < 0:
+                print "vsgDrawRect failed"
             
 
         
