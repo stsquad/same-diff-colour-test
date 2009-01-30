@@ -543,19 +543,19 @@ class ExpPresentation:
                 isSame = bool(list(color1)==list(color2))
                 print "isRight " + str(isRight) + "rt: " + str(rt)
                 curLine = self.createResponse(
-                                                                        whichPart=whichPart, 
-                                                                        curBlock=curBlock+1,
-                                                                        trialIndex=trialIndex+1,
-                                                                        colorCategory=self.trialListMatrix[trialIndex].colorCategory,
-                                                                        isLabel = self.trialListMatrix[trialIndex].isLabel,
-                                                                        sameDiff=self.trialListMatrix[trialIndex].sameDiff,
-                                                                        curDistance = self.curDistance,
-                                                                        locationOne = self.locations[0],
-                                                                        locationTwo = self.locations[1],
-                                                                        firstStim=color1,
-                                                                        secondStim=color2,
-                                                                        rt=rt*1000,
-                                                                        isRight=isRight) 
+			whichPart=whichPart, 
+			curBlock=curBlock+1,
+			trialIndex=trialIndex+1,
+			colorCategory=self.trialListMatrix[trialIndex].colorCategory,
+			isLabel = self.trialListMatrix[trialIndex].isLabel,
+			sameDiff=self.trialListMatrix[trialIndex].sameDiff,
+			curDistance = self.curDistance,
+			locationOne = self.locations[0],
+			locationTwo = self.locations[1],
+			firstStim=color1,
+			secondStim=color2,
+			rt=rt*1000,
+			isRight=isRight) 
                 self.writeToFile(self.experiment.outputFile,curLine)
                 return bool(isRight)
 
