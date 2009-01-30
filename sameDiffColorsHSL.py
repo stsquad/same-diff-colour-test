@@ -56,6 +56,41 @@ print "Falling through to end"
 # we will need to run the experiment
 #
 
+#
+# Define a class to contain a colour for the experiment
+# This allows us to absract some of the repeated logic for RGB into
+# this class making the logic easier to follow
+#
+class Colour:
+	def __init__(self, name, sound, colABC):
+		self.name = name
+		self.sound = sound
+		self.colour = colABC
+
+	def getName(self):
+		return self.name
+	
+
+# Define class to wrap up an individual trial		
+class Trail(Exp):
+	def __init__(self, colour, sameDiff, isLabel):
+		self.colour = colour
+		self.sameDiff = sameDiff
+		self.isLabel = isLabel
+
+		print "Created Trail object: Colour:%s, %s, %s" % (colour.getName(),
+								   self.sameDiff?"same":"different",
+								   self.isLabel?"labeled":"not labeled")
+		
+	
+	
+#class trial(Exp): 
+#        def __init__(self):
+#                colorCategory=''
+#                isLabel=''
+#                sameDiff=''
+
+
 class Exp:
         def __init__(self):
         
@@ -182,13 +217,7 @@ class Exp:
 
                 return (nx,ny)
                         
-                
-class trial(Exp):
-        def __init__(self):
-                colorCategory=''
-                isLabel=''
-                sameDiff=''
-        
+                       
 class ExpPresentation(trial):
         """Functions related to presenting stimuli"""
         def __init__(self,experiment):
