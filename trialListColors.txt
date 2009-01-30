@@ -1,0 +1,28 @@
+#
+# Experiment Definition File
+# Line beginning with # are comments and ignored by the script
+# Paramters are seperated by tab characters ("\t")
+#
+#
+# First we need to define some colours used by the script
+# define <name> <rgb values> <wav file>
+define	red	1.0,0.0,0.0	stimuli/reds.wav
+define	green	0.0,1.0,0.0  	stimuli/greens.wav
+define	blue	0.0,0.0,1.0	stimuli/blues.wav
+#
+#
+# These are the actual experiments. If the colour isn't defined
+# earlier this will cause a problem.
+# <colour> <labelled?> <same/diff>
+red	0	diff
+red	0	diff
+red	1	diff
+red	1	diff
+red	0	diff
+red	0	same
+red	1	diff
+red	1	same
+red	0	diff
+red	0	same
+red	1	diff
+red	1	same
