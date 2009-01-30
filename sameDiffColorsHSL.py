@@ -32,24 +32,30 @@ from math import *
 import numpy as num
 import Quest
 
-#set path to current directory
-path = os.getcwd() 
-print 'path is ' + str(path)
-
 #
 # Bring in the PyVSG library which will be duplicating what we see on the main screen
 # on the Visage display. As it's in this work directory we need to set PYTHONPATH which
 # influences where import will look for modules.
 #
 
+#set path to current directory
+path = os.getcwd() 
+print 'path is ' + str(path)
 os.environ["PYTHONPATH"]=path
+
 import PyVSG
+
+############################
+# Globals                  #
+############################
+
+# VISAGE library bindings
 vsg = PyVSG.PyVSG()
 
-#initialize sound system
-pygame.mixer.init()
-
-print "Falling through to end"
+# list of Colours used in the trial
+listOfColours = []
+# list of Trials
+listOfTrials = []
 
 #
 # The reset of the control flow is at the bottom of this file, what follows is defining the classes
@@ -62,26 +68,39 @@ print "Falling through to end"
 # this class making the logic easier to follow
 #
 class Colour:
-	def __init__(self, name, sound, colABC):
+	def __init__(self, name, colRGB, sound):
 		self.name = name
 		self.sound = sound
-		self.colour = colABC
+		self.RGB = colRGB
+		
 
 	def getName(self):
 		return self.name
 	
 
 # Define class to wrap up an individual trial		
-class Trail(Exp):
-	def __init__(self, colour, sameDiff, isLabel):
+class Trial:
+	def __init__(self, colour, labeled, sameDiff):
 		self.colour = colour
-		self.sameDiff = sameDiff
-		self.isLabel = isLabel
 
-		print "Created Trail object: Colour:%s, %s, %s" % (colour.getName(),
-								   self.sameDiff?"same":"different",
-								   self.isLabel?"labeled":"not labeled")
-		
+		if sameDiff == "same":
+			self.same = True
+		else:
+			self.same = False
+
+		self.labeled = labeled
+
+		if self.same == True:
+                        sameStr = "same"
+                else:
+                        sameStr = "diff"
+
+                if self.labeled == True:
+                        labelStr = "labelled"
+                else:
+                        labelStr = "unlabelled"
+                        
+		print "Created Trail object: Colour:%s, %s, %s" % (colour.getName(), sameStr, labelStr)
 	
 	
 #class trial(Exp): 
@@ -218,7 +237,7 @@ class Exp:
                 return (nx,ny)
                         
                        
-class ExpPresentation(trial):
+class ExpPresentation:
         """Functions related to presenting stimuli"""
         def __init__(self,experiment):
                 print "ExpPresentation:__init__"
@@ -323,21 +342,48 @@ class ExpPresentation(trial):
                 while pygame.event.wait().type != KEYDOWN:
                         self.presentStimulus(self.viewport_trial)
 
+	# Parse a line of experiment control file
+	# to define a colour and it's associated sound
+	def defineColourFromLine(self, line):
+		print "define colour: %s" % line
+		array = line.split("\t")
+		colour = Colour(array[1],
+				(array[2]),
+				array[3])
+		listOfColours.append(colour)
+
+	# Parse a line of the experiment control file
+	# to define an individual test block
+	def defineTrialFromLine(self, line):
+		print "trial: %s" % line
+		array = line.split("\t")
+		for colour in listOfColours:
+			if colour.name == array[0]:
+				trial = Trial(colour, array[1], array[2])
+				listOfTrials.append(trial)
+				return
+		print "Couldn't find colour definition for %s" % array[0]
+		exit()
                 
         def readTrials(self,fileName):
                 """This reads the trials from a specified file"""
                 f = file(fileName, "r")
-
-                trials = [line.split("\t") for line in f]
-                f.close()
-                trialObjects= ['']*len(trials) #initialize list to nulls
-                for i in range(len(trials)):
-                        trialObjects[i]=trial() #assign empty trial container to trialObjects
-                        trialObjects[i].colorCategory = trials[i][0] 
-                        trialObjects[i].isLabel = trials[i][1]
-                        trialObjects[i].sameDiff = trials[i][2].rstrip() #a hack... must be a better way to cut the newline at the end of a string
-                return trialObjects
-
+		line = f.readline()
+		while line:
+			# drop the newline
+			line.strip()
+			if line[0] == "#":
+				# ignore comments
+				# print "Skipping comment line: %s" % line
+				pass
+			elif line.find("define")==0:
+				# define a colour
+				self.defineColourFromLine(line)
+		        else:
+				self.defineTrialFromLine(line)
+			# next line
+			line = f.readline()
+		
 
         def presentStimulus(self,display):
                 self.experiment.screen.clear()
@@ -687,6 +733,11 @@ class ExpPresentation(trial):
 """
 This is the start of the Experiment
 """
+
+print "Start of Experiment"
+
+#initialize sound system
+pygame.mixer.init()
 
 # Set up the experiment
 currentExp = Exp()
