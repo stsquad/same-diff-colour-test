@@ -80,6 +80,22 @@ class Colour:
 
 # Define class to wrap up an individual trial		
 class Trial:
+
+	# Generate a printable reprentation of this trial
+	def __str__(self):
+		if self.same == True:
+                        sameStr = "same"
+                else:
+                        sameStr = "diff"
+
+                if self.labeled == True:
+                        labelStr = "labelled"
+                else:
+                        labelStr = "unlabelled"
+			
+		str = "%s, %s, %s" % (self.colour.name, sameStr, labelStr)
+		return str
+	
 	def __init__(self, colour, labeled, sameDiff):
 		self.colour = colour
 
@@ -90,17 +106,7 @@ class Trial:
 
 		self.labeled = labeled
 
-		if self.same == True:
-                        sameStr = "same"
-                else:
-                        sameStr = "diff"
-
-                if self.labeled == True:
-                        labelStr = "labelled"
-                else:
-                        labelStr = "unlabelled"
-                        
-		print "Created Trail object: Colour:%s, %s, %s" % (colour.getName(), sameStr, labelStr)
+		print "Created Trail object: Colour:%s" % self.__str__ 
 	
 	
 #class trial(Exp): 
@@ -667,17 +673,27 @@ class ExpPresentation:
                         numTrials = self.experiment.numPracticeTrials
                         numBlocks = 1
                 else:
-                        numTrials = len(self.trialListMatrix)
+                        numTrials = len(listOfTrials)
                         numBlocks = self.experiment.numBlocks
 
+		totalExperiments = 0
+		
                 print "Starting sequence: blocks=%d, trials per block=%d" % (numBlocks, numTrials)
                 
-                for curBlock in range(numBlocks):                       
-                        random.shuffle(self.trialListMatrix) #shuffle the trial list (once per block)
-                        for trialIndex in range(numTrials):                     
-                                #take break every X trials (for blocks that have hundreds of trials....)
-                                if trialIndex>0 and trialIndex % self.experiment.takeBreakEveryXTrials == 0:
-                                        self.showText(self.experiment.takeBreak) #take a break
+                for curBlock in range(numBlocks):
+			# Shuffle the trial list for each block of tests
+                        random.shuffle(listOfTrials)
+			
+                        for trial in listOfTrials:
+
+				#
+				# Ensure we take breaks
+				#
+				totalExperiments = totalExperiments + 1
+				if totalExperiments % self.experiment.takeBreakEveryXTrials == 0:
+                                        self.showText(self.experiment.takeBreak)
+
+				print "doing trial: %s" % trial
 
                                 random.shuffle(self.locations) #shuffle the locations - every trial
                                 
