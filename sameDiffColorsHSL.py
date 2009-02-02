@@ -68,28 +68,97 @@ listOfTrials = []
 # this class making the logic easier to follow
 #
 class Colour:
+
+	# String representaion of colour
+	def __str__(self):
+		str = "Colour: %s, current quantile: %s" % (self.name, self.quest.quantile())
+		return str
+	
 	def __init__(self, name, colRGB, sound):
 		self.name = name
-		self.sound = sound
+		self.sound = pygame.mixer.Sound (path + sound)
 		self.RGB = colRGB
-		
 
+		# create a quest object to track how guesses are doing against this object
+		self.quest = Quest.QuestObject( -1.0, # tGuess
+						 0.3, # tGuessSd (sd of Gaussian)
+						 0.7, # pThreshold
+						 3.5, # beta
+						 0.01, # delta
+						 0.5,  # gamma
+						 0.03  # grain
+						 )
+		# debug
+		print "Created %s" % (self.__str__()) 
+		
+	# Update the Quest Object, response is a True/False bool
+	# where True indicates the response was correct
+	def stepQuest(self, response):
+		# get the current quest value and make the guess +- 0.02
+		tTest = self.quest.quantile()
+		print "Colour::stepQuest => %s" % tTest
+		tTest = tTest+random.choice([-0.02, 0, 0.02])
+		print "  new value %s" % tTest
+
+		# update the quest object
+		self.quest.update(tTest, response)
+		return tTest
+		
+	def playSound(self):
+		print "play sound"
+		
 	def getName(self):
 		return self.name
-	
 
+	#
+	# Abstraction of colour arrays.
+	#
+	# As we could be working with many different colour schemes the following
+	# two functions return a triple value in whatever colour scheme seems
+	# appropriate. This means all the messing about with which variable to change
+	# and what colour scheme to use can be hidden in here.
+	#
+	
+	# Get the target colour 
+	def getTargetColour(self):
+		# for now test
+		return (1.0, 1.0, 1.0)
+
+	# This will be the target colour with a quest variation
+	def getQuestColour(self):
+		# for now test
+		return (.5, .5, .5)
+
+#        def setUpQuest(self):
+#                tGuess = -1.0
+#                tGuessSd = 0.3 # sd of Gaussian before clipping to specified range
+#                pThreshold = 0.7
+#                beta = 3.5
+#                delta = 0.01
+#                gamma = 0.5
+#                return Quest.QuestObject(tGuess,tGuessSd,pThreshold,beta,delta,gamma,grain=.03)
+                
+#        def stepQuest(self,q,response):
+#                tTest=q.quantile()
+#                #tTest=q.mean()
+#                #tTest=q.mode()
+#                tTest=tTest+random.choice([-.02,0,.02])
+#                q.update(tTest,response);
+#                return tTest            
+
+	
 # Define class to wrap up an individual trial		
 class Trial:
 
 	# Generate a printable reprentation of this trial
 	def __str__(self):
-		str = "%s, %s" % (self.colour.name, self.type)
+		str = "Trial: %s, %s" % (self.colour.name, self.type)
 		return str
 	
 	def __init__(self, colour, sameDiff):
 		self.colour = colour
 		self.type = sameDiff
-		print "Created Trail object: Colour:%s" % self.__str__ 
+		print "Created %s" % (self.__str__())
 	
 	
 #class trial(Exp): 
@@ -276,38 +345,12 @@ class ExpPresentation:
 			size = (100,100)
 			)
 
-                # Define all the sounds
-                self.wrongSound =       pygame.mixer.Sound(path + "\\stimuli\\" + "Buzz3.wav")
-                self.correctSound =     pygame.mixer.Sound(path + "\\stimuli\\" + "Bleep3.wav")
-                self.carrierSound =     pygame.mixer.Sound(path + "\\stimuli\\" + "areTheTwo.wav")
-                self.redSound =         pygame.mixer.Sound(path + "\\stimuli\\" + "reds.wav")
-                self.greenSound =       pygame.mixer.Sound(path + "\\stimuli\\" + "greens.wav")
-                self.blueSound =        pygame.mixer.Sound(path + "\\stimuli\\" + "blues.wav")
-                self.colorSound =       pygame.mixer.Sound(path + "\\stimuli\\" + "colors.wav")
-                self.sameSound =        pygame.mixer.Sound(path + "\\stimuli\\" + "same.wav")
-                self.diffSound =        pygame.mixer.Sound(path + "\\stimuli\\" + "diff.wav")
-                                                
+		
                                                 
                 self.viewport_fixation  = Viewport( screen = self.experiment.screen, stimuli=[self.fix1,self.fix2] ) #fixation cross
                 self.viewport_trial     = Viewport( screen = self.experiment.screen) #set dynamically below
 
                 
-        def setUpQuest(self):
-                tGuess = -1.0
-                tGuessSd = 0.3 # sd of Gaussian before clipping to specified range
-                pThreshold = 0.7
-                beta = 3.5
-                delta = 0.01
-                gamma = 0.5
-                return Quest.QuestObject(tGuess,tGuessSd,pThreshold,beta,delta,gamma,grain=.03)
-                
-        def stepQuest(self,q,response):
-                tTest=q.quantile()
-                #tTest=q.mean()
-                #tTest=q.mode()
-                tTest=tTest+random.choice([-.02,0,.02])
-                q.update(tTest,response);
-                return tTest            
                 
         def convertFromRGB(self,decimalTriplet):
                 return decimalTriplet/255.0
@@ -335,7 +378,7 @@ class ExpPresentation:
 	# to define a colour and it's associated sound
 	def defineColourFromLine(self, line):
 		array = line.split(None) # whitespace
-		print "define colour: %s" % array
+		# print "define colour: %s" % array
 		colour = Colour(array[1],
 				(array[2]),
 				array[3])
@@ -344,7 +387,7 @@ class ExpPresentation:
 	# Parse a line of the experiment control file
 	# to define an individual test block
 	def defineTrialFromLine(self, line):
-		print "trial: %s" % line
+		# print "trial: %s" % line
 		array = line.split(None)
 		for colour in listOfColours:
 			if colour.name == array[0]:
@@ -400,10 +443,10 @@ class ExpPresentation:
 
         def isResponseCorrect(self,response, firstStim, secondStim):
                 if response == self.experiment.sameResp and list(firstStim)==list(secondStim):
-                        return 1
+                        return True
                 if response == self.experiment.diffResp and list(firstStim) != list(secondStim):
-                        return 1
-                return 0
+                        return True
+                return False
 
                 
         #I don't think we need this function for sameDiff...
@@ -585,71 +628,54 @@ class ExpPresentation:
         
         def getPsychometricFunctions(self,whichPart):
 
-                def updateColorDistance(self):
-                        colorCategory = self.trialListMatrix[trialIndex].colorCategory
-                        isLabel = int(self.trialListMatrix[trialIndex].isLabel)
-                        if colorCategory=="red":
-                                if isLabel:
-                                        self.curDistanceRedL = self.stepQuest(self.qRedL,response)
-                                else:
-                                        self.curDistanceRedNL = self.stepQuest(self.qRedNL,response)
-                        elif colorCategory=="green":
-                                if isLabel:
-                                        self.curDistanceGreenL = self.stepQuest(self.qGreenL,response)
-                                else:
-                                        self.curDistanceGreenNL = self.stepQuest(self.qGreenNL,response)
-                        elif colorCategory=="blue":
-                                if isLabel:
-                                        self.curDistanceBlueL = self.stepQuest(self.qBlueL,response)
-                                else:
-                                        self.curDistanceBlueNL = self.stepQuest(self.qBlueNL,response)
+                # def updateColorDistance(self):
+                #         colorCategory = self.trialListMatrix[trialIndex].colorCategory
+                #         isLabel = int(self.trialListMatrix[trialIndex].isLabel)
+                #         if colorCategory=="red":
+                #                 if isLabel:
+                #                         self.curDistanceRedL = self.stepQuest(self.qRedL,response)
+                #                 else:
+                #                         self.curDistanceRedNL = self.stepQuest(self.qRedNL,response)
+                #         elif colorCategory=="green":
+                #                 if isLabel:
+                #                         self.curDistanceGreenL = self.stepQuest(self.qGreenL,response)
+                #                 else:
+                #                         self.curDistanceGreenNL = self.stepQuest(self.qGreenNL,response)
+                #         elif colorCategory=="blue":
+                #                 if isLabel:
+                #                         self.curDistanceBlueL = self.stepQuest(self.qBlueL,response)
+                #                 else:
+                #                         self.curDistanceBlueNL = self.stepQuest(self.qBlueNL,response)
                                 
 
-                def setBaseColorAndDistance(self):
-                        colorCategory = self.trialListMatrix[trialIndex].colorCategory 
-                        isLabel = int(self.trialListMatrix[trialIndex].isLabel)
-                        print "isLabel is " + str(isLabel)
-                        if colorCategory=="red":
-                                self.baseColor = self.convertFromRGB(self.HSL_2_RGB(num.array([0.0,1.0,.35]))) #0, 100, 84
-                                print "red RGB basecolor is " + str(self.baseColor)
-                                if isLabel==1:
-                                        self.curDistance = self.curDistanceRedL
-                                else:
-                                        self.curDistance = self.curDistanceRedNL                                        
-                        elif colorCategory=="green":
-                                self.baseColor = self.convertFromRGB(self.HSL_2_RGB(num.array([0.308,1.0,.35]))) #111, 100, 84
-                                print "green RGB basecolor is " + str(self.baseColor)
-                                if isLabel==1:
-                                        self.curDistance = self.curDistanceGreenL
-                                else:
-                                        self.curDistance = self.curDistanceGreenNL
-                        elif colorCategory=="blue":
-                                self.baseColor = self.convertFromRGB(self.HSL_2_RGB(num.array([0.675,1.0,.35]))) #243, 100, 84
-                                print "blue RGB basecolor is " + str(self.baseColor)
-                                if isLabel==1:
-                                        self.curDistance = self.curDistanceBlueL
-                                else:
-                                        self.curDistance = self.curDistanceBlueNL
+                # def setBaseColorAndDistance(self):
+                #         colorCategory = self.trialListMatrix[trialIndex].colorCategory 
+                #         isLabel = int(self.trialListMatrix[trialIndex].isLabel)
+                #         print "isLabel is " + str(isLabel)
+                #         if colorCategory=="red":
+                #                 self.baseColor = self.convertFromRGB(self.HSL_2_RGB(num.array([0.0,1.0,.35]))) #0, 100, 84
+                #                 print "red RGB basecolor is " + str(self.baseColor)
+                #                 if isLabel==1:
+                #                         self.curDistance = self.curDistanceRedL
+                #                 else:
+                #                         self.curDistance = self.curDistanceRedNL                                        
+                #         elif colorCategory=="green":
+                #                 self.baseColor = self.convertFromRGB(self.HSL_2_RGB(num.array([0.308,1.0,.35]))) #111, 100, 84
+                #                 print "green RGB basecolor is " + str(self.baseColor)
+                #                 if isLabel==1:
+                #                         self.curDistance = self.curDistanceGreenL
+                #                 else:
+                #                         self.curDistance = self.curDistanceGreenNL
+                #         elif colorCategory=="blue":
+                #                 self.baseColor = self.convertFromRGB(self.HSL_2_RGB(num.array([0.675,1.0,.35]))) #243, 100, 84
+                #                 print "blue RGB basecolor is " + str(self.baseColor)
+                #                 if isLabel==1:
+                #                         self.curDistance = self.curDistanceBlueL
+                #                 else:
+                #                         self.curDistance = self.curDistanceBlueNL
 
                 print "getPsychometricFunctions"
                 self.locations = ["left","right"]
-
-
-                #set up Quest objects (staircases)
-                self.qRedL = self.setUpQuest()
-                self.qRedNL = self.setUpQuest()
-                self.qGreenL = self.setUpQuest()
-                self.qGreenNL = self.setUpQuest()
-                self.qBlueL = self.setUpQuest()
-                self.qBlueNL = self.setUpQuest()
-                
-                #set initial distances (Quest intensities)
-                self.curDistanceRedL =          self.qRedL.tGuess
-                self.curDistanceRedNL =         self.qRedNL.tGuess
-                self.curDistanceGreenL =        self.qGreenL.tGuess
-                self.curDistanceGreenNL =       self.qGreenNL.tGuess
-                self.curDistanceBlueL =         self.qBlueL.tGuess
-                self.curDistanceBlueNL =        self.qBlueNL.tGuess
 
                 if whichPart == "practice":
                         print "doing practice run"
@@ -676,34 +702,31 @@ class ExpPresentation:
 				if totalExperiments % self.experiment.takeBreakEveryXTrials == 0:
                                         self.showText(self.experiment.takeBreak)
 
-				print "doing trial: %s" % trial
+				print "Doing %s" % trial
 
                                 random.shuffle(self.locations) #shuffle the locations - every trial
                                 
-                                
-                                setBaseColorAndDistance(self) #sets the base color and distance.  self.curDistance now points to redL, redNL, greenL, etc.... as appropriate for the current trial.
-                                firstColorHue =         self.baseColor[0]+abs(1-1/(1+10**self.curDistance))/2.0
-                                secondColorHue =        self.baseColor[0]-abs(1-1/(1+10**self.curDistance))/2.0
+				# Time to get the colours
+				targetColour = trial.colour.getTargetColour()
+				questColour = trial.colour.getQuestColour()
+				print "%s => quest %s" % (targetColour, questColour)
 
-                                #self.convertFromRGB(self.HSL_2_RGB(num.array([firstColorHue,1.0,.35])))
-                                firstColor = (firstColorHue,self.baseColor[1],self.baseColor[2])
-                                secondColor = (secondColorHue,self.baseColor[1],self.baseColor[2])
-                                        
-                                
-                                #if this is a "same" (catch) trial.. set the two colors to be the same
-                                if self.trialListMatrix[trialIndex].sameDiff=="same":
-                                        if random.random>.5:
-                                                firstColor=secondColor
-                                        else:
-                                                secondColor=firstColor
+				# Shuffle the first and second colours
+				if random.random>.5:
+					firstColour=targetColour
+					secondColour=questColour
+				else:
+					firstColour=questColour
+					secondColour=targetColour
 
-                                print "baseColor is " + str(self.baseColor) + "\n"
-                                print "baseColor hue " + str(self.baseColor[0]) + "\n"
-                                print "firstColorHue is " + str(firstColorHue) + "\n"
-                                print "firstColor is " + str(firstColor) + "\n"
-                                print "secondColorHue is " + str(secondColorHue) + "\n"
-                                print "secondColor is " + str(secondColor) + "\n"
-
+				# If it's a "same" experiment make both either quest or target colour
+				if trial.type == "same":
+					secondColour = firstColour
+				else:
+					firstColour = secondColour
+					
+				print "firstColour: %s" % (firstColour)
+				print "secondColour: %s" % (secondColour)
                                                 
                                 #set the colors
                                 self.firstStim.parameters.color = list(firstColor)
@@ -716,11 +739,12 @@ class ExpPresentation:
                                 self.secondStim.parameters.position = self.experiment.stimPositions[self.secondLocation] 
                                 
                                 """This is what's shown on every trial"""
-                                response = self.presentExperimentTrial(curBlock,trialIndex,whichPart,firstColor,secondColor)
+                                response = self.presentExperimentTrial(curBlock,trial,whichPart,firstColor,secondColor)
                                 
-                                #for "different" trials, update the step Weibull function for the appropriate color category:
-                                if self.trialListMatrix[trialIndex].sameDiff=="diff":
-                                        updateColorDistance(self)
+				# If this was a difference trial we need to update the colour distances
+				# based on the response given.
+                		if trail.type == "diff":
+					targetColour.stepQuest(response)
                                         
                                         
                                 print str(response) + " " + str(self.curDistance) + str(firstColor) + " " + str(secondColor) + "\n"     
