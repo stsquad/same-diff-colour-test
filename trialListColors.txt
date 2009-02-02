@@ -7,7 +7,7 @@
 # First we need to define some colours used by the script
 # define <name> <rgb values> <wav file>
 define	red	1.0,0.0,0.0	stimuli/reds.wav
-define  red-ul  1.0,0.0,0.0	stimuli/colours.wav
+define  red-ul  1.0,0.0,0.0	stimuli/colors.wav
 define	green	0.0,1.0,0.0  	stimuli/greens.wav
 define	blue	0.0,0.0,1.0	stimuli/blues.wav
 #
@@ -16,9 +16,14 @@ define	blue	0.0,0.0,1.0	stimuli/blues.wav
 # earlier this will cause a problem.
 # <colour> <same/diff>
 red	same
+green	diff
 red	diff
+blue	diff
+green	same
 red-ul	diff
+blue	same
 red-ul	same
+blue 	same
 # red	diff
 # red	diff
 # red	diff

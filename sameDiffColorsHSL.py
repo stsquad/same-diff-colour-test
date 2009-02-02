@@ -72,16 +72,27 @@ class Colour:
 	# String representaion of colour
 	def __str__(self):
 
+		rgb_str = "%f, %f, %f" % (self.RGB.a, self.RGB.b, self.RGB.c)
+		cie_str = "%f, %f, %f" % (self.CIE.a, self.CIE.b, self.CIE.c)
+		
 		if self.target:
-			str = "Colour: %s, current quantile: %s" % (self.name, self.quest.quantile())
+			str = "Colour: %s (%s/%s) current quantile: %s" % (self.name,
+									   rgb_str,
+									   cie_str,
+									   self.quest.quantile())
 		else:
-			str = "Temp Colour: %s" % (self.name)
+			str = "Temp Colour: %s (%s/%s)" % (self.name,
+							   rgb_str,
+							   cie_str)
 			
 		return str
 	
 	def __init__(self, name, colRGB, sound="", target=True):
 		self.name = name
-		self.RGB = colRGB
+
+		# Set the colours up
+		self.RGB = PyVSG.vsgTRIVIAL(colRGB[0], colRGB[1], colRGB[2])
+		self.CIE = vsg.vsgSpaceToSpace(PyVSG.vsgCS_RGB, self.RGB, PyVSG.vsgCS_CIE1976)
 
 		if sound:
 			sound_path = path + "\\" + sound
@@ -90,8 +101,11 @@ class Colour:
 
 		# Only target colours track their quest values
 		self.target = target
+
+		var = self.CIE.a + 0.15
+		
 		if target:
-			self.quest = Quest.QuestObject( -1.0, # tGuess
+			self.quest = Quest.QuestObject(  var, # tGuess
 							 0.3, # tGuessSd (sd of Gaussian)
 							 0.7, # pThreshold
 							 3.5, # beta
@@ -101,7 +115,6 @@ class Colour:
 							 )
 		# debug
 		print "Created %s" % (self.__str__())
-		print self.RGB
 		
 	# Update the Quest Object, response is a True/False bool
 	# where True indicates the response was correct
@@ -109,20 +122,19 @@ class Colour:
 		
 		# get the current quest value and make the guess +- 0.02
 		tTest = self.quest.quantile()
-		print "Colour::stepQuest => %s" % tTest
-		tTest = tTest+random.choice([-0.02, 0, 0.02])
-		print "  new value %s" % tTest
+		tNew = tTest+random.choice([-0.02, 0, 0.02])
+		print "Colour::stepQuest %s => %s" % (tTest, tNew)
 
 		# update the quest object
-		self.quest.update(tTest, response)
+		self.quest.update(tNew, response)
 		return tTest
-		
-	def playSound(self):
-		print "play sound"
-		
-	def getName(self):
-		return self.name
 
+
+	# used for getQuestColour as we actually work in CIE
+	def setColourCIE(self, a, b, c):
+		self.CIE = PyVSG.vsgTRIVIAL(a, b, c)
+		self.RGB = vsg.vsgSpaceToSpace(PyVSG.vsgCS_CIE1976, self.CIE, PyVSG.vsgCS_RGB)
+	
 	#
 	# Abstraction of colour arrays.
 	#
@@ -138,17 +150,21 @@ class Colour:
 		# quest later.
 		testRGB = (0.0, 1.0, 0.0)
 		questCol = Colour(self.name, (testRGB), "", False)
+		questCol.setColourCIE(self.quest.quantile(), self.CIE.b, self.CIE.c)
+		
+		print "getQuestColour: %s" % (self.__str__())
+		# Calculate the quest colour
+		
 		return questCol
 
+	# As VisionEgg wants these we create a list
 	def asRGB(self):
-		print "asRGB of %s" % (self)
-		return self.RGB
+		rgb = ( self.RGB.a, self.RGB.b, self.RGB.c )
+		return rgb
 
+	# As VISAGE deals with CIE we pass back the normal object
 	def asCIE(self):
-		print "asCIE of %s" % (self)
-		rgb = PyVSG.vsgTRIVIAL(self.RGB[0], self.RGB[1], self.RGB[2])
-		cie = vsg.vsgSpaceToSpace(PyVSG.vsgCS_RGB, rgb, PyVSG.vsgCS_CIE1976)
-		return cie
+		return self.CIE
 
 	
 # Define class to wrap up an individual trial		
@@ -716,7 +732,8 @@ class ExpPresentation:
 				# Time to get the colours
 				targetColour = trial.colour
 				questColour = targetColour.getQuestColour()
-				print "actual %s => quest %s" % (targetColour, questColour)
+				print "Actual %s" % (targetColour)
+				print "Quest %s" % (questColour)
 
 				# Shuffle the first and second colours
 				if random.random()>.5:
@@ -730,7 +747,8 @@ class ExpPresentation:
 				if trial.type == "same":
 					firstColour = secondColour
 					
-				print "first %s second %s" % (firstColour, secondColour)
+				print "First %s" % (firstColour)
+				print "Second %s" % (secondColour)
 
 				# For future expansion it may make sense to pass the colours around in
 				# and array.
