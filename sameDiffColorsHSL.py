@@ -141,15 +141,13 @@ class Colour:
 		return questCol
 
 	def asRGB(self):
+		print "asRGB of %s" % (self)
 		return self.RGB
 
 	def asCIE(self):
 		print "asCIE of %s" % (self)
-		print self.RGB
 		rgb = PyVSG.vsgTRIVIAL(self.RGB[0], self.RGB[1], self.RGB[2])
-		print rgb
 		cie = vsg.vsgSpaceToSpace(PyVSG.vsgCS_RGB, rgb, PyVSG.vsgCS_CIE1976)
-		print cie
 		return cie
 
 	
@@ -721,7 +719,7 @@ class ExpPresentation:
 				print "actual %s => quest %s" % (targetColour, questColour)
 
 				# Shuffle the first and second colours
-				if random.random>.5:
+				if random.random()>.5:
 					firstColour=targetColour
 					secondColour=questColour
 				else:
@@ -769,8 +767,8 @@ currentPresentation.showWrappedText(currentExp.instructions) #show the instructi
 # Run the experiment
 #
 # Passing "practice" forces a single itteration for the sake of testing
-#currentPresentation.getPsychometricFunctions("questNothingVsColor")
-currentPresentation.getPsychometricFunctions("practice")
+currentPresentation.getPsychometricFunctions("questNothingVsColor")
+#currentPresentation.getPsychometricFunctions("practice")
 
 # Thank the subject
 currentPresentation.showWrappedText(currentExp.thanks)

@@ -1,7 +1,7 @@
 #
 # Experiment Definition File
 # Line beginning with # are comments and ignored by the script
-# Paramters are seperated by tab characters ("\t")
+# Paramters are seperated by whitespace (tabs & spaces)
 #
 #
 # First we need to define some colours used by the script
@@ -15,15 +15,16 @@ define	blue	0.0,0.0,1.0	stimuli/blues.wav
 # These are the actual experiments. If the colour isn't defined
 # earlier this will cause a problem.
 # <colour> <same/diff>
+red	same
 red	diff
 red-ul	diff
-red	diff
-red	diff
-red	diff
-red	same
-red	diff
-red	same
-red	diff
-red	same
-red	diff
-red	same
+red-ul	same
+# red	diff
+# red	diff
+# red	diff
+# red	diff
+# red	same
+# red	diff
+# red	same
+# red	diff
+# red	same

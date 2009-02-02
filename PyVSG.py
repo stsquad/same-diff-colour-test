@@ -107,8 +107,8 @@ class PyVSG:
             res = self.vsgDll.vsgSpaceToSpace(c_ulong(srcSpace), pointer(srcColour), c_ulong(dstSpace), pointer(dstColour), c_ulong(maxval))
             if res < 0:
                 print "vsgSpaceToSpace failed"
-            else:
-                print "vsgSpaceToSpace gives (%f,%f,%f)" % (dstColour.a, dstColour.b, dstColour.c)
+#            else:
+#                print "vsgSpaceToSpace gives (%f,%f,%f)" % (dstColour.a, dstColour.b, dstColour.c)
         else:
             print "vsgSetColourSpace can't work"
         return dstColour
