@@ -7,22 +7,23 @@
 # First we need to define some colours used by the script
 # define <name> <rgb values> <wav file>
 define	red	1.0,0.0,0.0	stimuli/reds.wav
+define  red-ul  1.0,0.0,0.0	stimuli/colours.wav
 define	green	0.0,1.0,0.0  	stimuli/greens.wav
 define	blue	0.0,0.0,1.0	stimuli/blues.wav
 #
 #
 # These are the actual experiments. If the colour isn't defined
 # earlier this will cause a problem.
-# <colour> <labelled?> <same/diff>
-red	0	diff
-red	0	diff
-red	1	diff
-red	1	diff
-red	0	diff
-red	0	same
-red	1	diff
-red	1	same
-red	0	diff
-red	0	same
-red	1	diff
-red	1	same
+# <colour> <same/diff>
+red	diff
+red-ul	diff
+red	diff
+red	diff
+red	diff
+red	same
+red	diff
+red	same
+red	diff
+red	same
+red	diff
+red	same

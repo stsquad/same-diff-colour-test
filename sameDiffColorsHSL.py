@@ -83,29 +83,12 @@ class Trial:
 
 	# Generate a printable reprentation of this trial
 	def __str__(self):
-		if self.same == True:
-                        sameStr = "same"
-                else:
-                        sameStr = "diff"
-
-                if self.labeled == True:
-                        labelStr = "labelled"
-                else:
-                        labelStr = "unlabelled"
-			
-		str = "%s, %s, %s" % (self.colour.name, sameStr, labelStr)
+		str = "%s, %s" % (self.colour.name, self.type)
 		return str
 	
-	def __init__(self, colour, labeled, sameDiff):
+	def __init__(self, colour, sameDiff):
 		self.colour = colour
-
-		if sameDiff == "same":
-			self.same = True
-		else:
-			self.same = False
-
-		self.labeled = labeled
-
+		self.type = sameDiff
 		print "Created Trail object: Colour:%s" % self.__str__ 
 	
 	
@@ -351,8 +334,8 @@ class ExpPresentation:
 	# Parse a line of experiment control file
 	# to define a colour and it's associated sound
 	def defineColourFromLine(self, line):
-		print "define colour: %s" % line
-		array = line.split("\t")
+		array = line.split(None) # whitespace
+		print "define colour: %s" % array
 		colour = Colour(array[1],
 				(array[2]),
 				array[3])
@@ -362,10 +345,10 @@ class ExpPresentation:
 	# to define an individual test block
 	def defineTrialFromLine(self, line):
 		print "trial: %s" % line
-		array = line.split("\t")
+		array = line.split(None)
 		for colour in listOfColours:
 			if colour.name == array[0]:
-				trial = Trial(colour, array[1], array[2])
+				trial = Trial(colour, array[1])
 				listOfTrials.append(trial)
 				return
 		print "Couldn't find colour definition for %s" % array[0]
