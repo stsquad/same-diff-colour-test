@@ -71,31 +71,42 @@ class Colour:
 
 	# String representaion of colour
 	def __str__(self):
-		str = "Colour: %s, current quantile: %s" % (self.name, self.quest.quantile())
+
+		if self.target:
+			str = "Colour: %s, current quantile: %s" % (self.name, self.quest.quantile())
+		else:
+			str = "Temp Colour: %s" % (self.name)
+			
 		return str
 	
-	def __init__(self, name, colRGB, sound, target=True):
+	def __init__(self, name, colRGB, sound="", target=True):
 		self.name = name
-		print "path+sound = %s" % (path+sound)
-		self.sound = pygame.mixer.Sound (path + sound)
 		self.RGB = colRGB
+
+		if sound:
+			sound_path = path + "\\" + sound
+			print "sound_path = %s" % (sound_path)
+			self.sound = pygame.mixer.Sound (sound_path)
+
+		# Only target colours track their quest values
 		self.target = target
-		
-		# create a quest object to track how guesses are doing against this object
-		self.quest = Quest.QuestObject( -1.0, # tGuess
-						 0.3, # tGuessSd (sd of Gaussian)
-						 0.7, # pThreshold
-						 3.5, # beta
-						 0.01, # delta
-						 0.5,  # gamma
-						 0.03  # grain
-						 )
+		if target:
+			self.quest = Quest.QuestObject( -1.0, # tGuess
+							 0.3, # tGuessSd (sd of Gaussian)
+							 0.7, # pThreshold
+							 3.5, # beta
+							 0.01, # delta
+							 0.5,  # gamma
+							 0.03  # grain
+							 )
 		# debug
-		print "Created %s" % (self.__str__()) 
+		print "Created %s" % (self.__str__())
+		print self.RGB
 		
 	# Update the Quest Object, response is a True/False bool
 	# where True indicates the response was correct
 	def stepQuest(self, response):
+		
 		# get the current quest value and make the guess +- 0.02
 		tTest = self.quest.quantile()
 		print "Colour::stepQuest => %s" % tTest
@@ -121,32 +132,25 @@ class Colour:
 	# and what colour scheme to use can be hidden in here.
 	#
 	
-	# Get the target colour 
-	def getTargetColour(self):
-		# for now test
-		return (1.0, 0.0, 0.0)
-
 	# This will be the target colour with a quest variation
 	def getQuestColour(self):
-		# for now test
-		return (0.0, 1.0, 0.0)
+		# this is just a test, we should poke it with actuall colour data based on the
+		# quest later.
+		testRGB = (0.0, 1.0, 0.0)
+		questCol = Colour(self.name, (testRGB), "", False)
+		return questCol
 
-#        def setUpQuest(self):
-#                tGuess = -1.0
-#                tGuessSd = 0.3 # sd of Gaussian before clipping to specified range
-#                pThreshold = 0.7
-#                beta = 3.5
-#                delta = 0.01
-#                gamma = 0.5
-#                return Quest.QuestObject(tGuess,tGuessSd,pThreshold,beta,delta,gamma,grain=.03)
-                
-#        def stepQuest(self,q,response):
-#                tTest=q.quantile()
-#                #tTest=q.mean()
-#                #tTest=q.mode()
-#                tTest=tTest+random.choice([-.02,0,.02])
-#                q.update(tTest,response);
-#                return tTest            
+	def asRGB(self):
+		return self.RGB
+
+	def asCIE(self):
+		print "asCIE of %s" % (self)
+		print self.RGB
+		rgb = PyVSG.vsgTRIVIAL(self.RGB[0], self.RGB[1], self.RGB[2])
+		print rgb
+		cie = vsg.vsgSpaceToSpace(PyVSG.vsgCS_RGB, rgb, PyVSG.vsgCS_CIE1976)
+		print cie
+		return cie
 
 	
 # Define class to wrap up an individual trial		
@@ -202,6 +206,9 @@ class Exp:
                 self.screen = get_default_screen()
                 self.screen.parameters.bgcolor = (0.0,0.0,0.0,1.0)
 
+		# Set VISAGE to CIE colour space
+		vsg.vsgSetColourSpace(PyVSG.vsgCS_CIE1976)
+		vsg.vsgSetDrawPage(0)
                 
                 self.preFixationDelay  =        0.250
                 self.postFixationDelay  =       0.500
@@ -329,6 +336,7 @@ class ExpPresentation:
 			position = self.experiment.convertFromPresentationStyleCoordinates((0,0))
 			)
 
+		# left box
                 self.firstStim  = Target2D(
 			anchor = 'center',
 			color = (1,1,1),
@@ -338,6 +346,7 @@ class ExpPresentation:
 			size = (100,100)
 			)
 
+		# right box
                 self.secondStim  = Target2D(
 			anchor = 'center',
 			color = (1,1,1),
@@ -386,8 +395,12 @@ class ExpPresentation:
 	def defineColourFromLine(self, line):
 		array = line.split(None) # whitespace
 		# print "define colour: %s" % array
+		cols = array[2].split(",")
+		rgb = []
+		for c in cols:
+			rgb.append(float(c))
 		colour = Colour(array[1],
-				(array[2]),
+			        rgb,
 				array[3])
 		listOfColours.append(colour)
 
@@ -448,10 +461,10 @@ class ExpPresentation:
                         sys.exit()
         
 
-        def isResponseCorrect(self, response, firstStim, secondStim):
-                if response == self.experiment.sameResp and list(firstStim)==list(secondStim):
+        def isResponseCorrect(self, response, col1, col2):
+                if response == self.experiment.sameResp and col1==col2:
                         return True
-                if response == self.experiment.diffResp and list(firstStim) != list(secondStim):
+                if response == self.experiment.diffResp and col1!=col2:
                         return True
                 return False
 
@@ -488,7 +501,7 @@ class ExpPresentation:
         # an isRight/isWrong response for the next iterations calculations
         #
    
-        def presentExperimentTrial(self,curBlock,trial,whichPart,color1,color2):
+        def presentExperimentTrial(self,curBlock,trial,whichPart,expNo,cols):
 
                 #
                 # Play the sound cue. 
@@ -511,7 +524,19 @@ class ExpPresentation:
 			# The same?
                         playAndWait(self.sameSound)
 
-                # start of presentExperimentTrial
+                # start of presentExperimentTrial.
+		# get the left and right colours out of the list and set them
+		leftCol = cols[0]
+		leftCol_RGB = leftCol.asRGB()
+		leftCol_CIE = leftCol.asCIE()
+
+		self.firstStim.parameters.color = list(leftCol_RGB)
+		
+		rightCol = cols[1]
+		rightCol_RGB = rightCol.asRGB()
+		rightCol_CIE = rightCol.asCIE()
+
+		self.secondStim.parameters.color = list(rightCol_RGB)
 
                 # First clear screen and wait for some specified time
                 
@@ -526,9 +551,10 @@ class ExpPresentation:
                 # VE:
                 self.presentStimulus(self.viewport_fixation) #show fixation cross
                 # VISAGE:
-                white = PyVSG.vsgTRIVIAL(1.0, 1.0, 1.0)
-                vsg.vsgPaletteSet(1, white)
-                vsg.vsgSetPen1(1)
+                rgbWhite = PyVSG.vsgTRIVIAL(1.0, 1.0, 1.0)
+		labWhite = vsg.vsgSpaceToSpace(PyVSG.vsgCS_RGB, rgbWhite, PyVSG.vsgCS_CIE1976)
+		
+		vsg.vsgSetDrawColour(labWhite)
                 vsg.vsgDrawRect(0,0,10,2)
                 vsg.vsgDrawRect(0,0,2,10)
                 vsg.vsgSetDisplayPage(0)
@@ -542,19 +568,14 @@ class ExpPresentation:
                 # VISAGE
                 vsg.vsgSetDrawPage(1)
                 # cross
-                vsg.vsgPaletteSet(1, white)
-                vsg.vsgSetPen1(1)
+		vsg.vsgSetDrawColour(labWhite)
                 vsg.vsgDrawRect(0,0,10,2)
                 vsg.vsgDrawRect(0,0,2,10)
                 # left box
-                leftColour = PyVSG.vsgTRIVIAL(color1[0],color1[1],color1[2])
-                vsg.vsgPaletteSet(2, leftColour)
-                vsg.vsgSetPen1(2)
+		vsg.vsgSetDrawColour(leftCol_CIE)
                 vsg.vsgDrawRect(-125, 0, 100, 100)
                 # right box
-                rightColour = PyVSG.vsgTRIVIAL(color2[0],color2[1],color2[2])
-                vsg.vsgPaletteSet(3, rightColour)
-                vsg.vsgSetPen1(3)
+		vsg.vsgSetDrawColour(rightCol_CIE)
                 vsg.vsgDrawRect(125, 0, 100, 100)
                 # switch to display 1
                 vsg.vsgSetDisplayPage(1)
@@ -574,7 +595,7 @@ class ExpPresentation:
                                         break
 
 		# Was the response correct
-                isRight = self.isResponseCorrect(response, color1, color2)
+                isRight = self.isResponseCorrect(response, leftCol, rightCol)
 
 		print "presentExperimentTrial: correct:%s time:%f" % (isRight, rt)
 		return isRight
@@ -695,8 +716,8 @@ class ExpPresentation:
                                 random.shuffle(self.locations) #shuffle the locations - every trial
                                 
 				# Time to get the colours
-				targetColour = trial.colour.getTargetColour()
-				questColour = trial.colour.getQuestColour()
+				targetColour = trial.colour
+				questColour = targetColour.getQuestColour()
 				print "actual %s => quest %s" % (targetColour, questColour)
 
 				# Shuffle the first and second colours
@@ -712,19 +733,13 @@ class ExpPresentation:
 					firstColour = secondColour
 					
 				print "first %s second %s" % (firstColour, secondColour)
-                                                
-                                #set the colors
-                                self.firstStim.parameters.color = list(firstColour)
-                                self.secondStim.parameters.color = list(secondColour)
-                                
-                                #set the screen locations of the stimuli
-                                self.firstLocation = self.locations[0]
-                                self.secondLocation = self.locations[1]
-                                self.firstStim.parameters.position = self.experiment.stimPositions[self.firstLocation]
-                                self.secondStim.parameters.position = self.experiment.stimPositions[self.secondLocation] 
+
+				# For future expansion it may make sense to pass the colours around in
+				# and array.
+				cols = [firstColour, secondColour]
                                 
                                 """This is what's shown on every trial"""
-                                response = self.presentExperimentTrial(curBlock,trial,whichPart,firstColour,secondColour)
+                                response = self.presentExperimentTrial(curBlock,trial,whichPart, totalExperiments, cols)
                                 
 				# If this was a difference trial we need to update the colour distances
 				# based on the response given.
