@@ -74,11 +74,13 @@ class Colour:
 		str = "Colour: %s, current quantile: %s" % (self.name, self.quest.quantile())
 		return str
 	
-	def __init__(self, name, colRGB, sound):
+	def __init__(self, name, colRGB, sound, target=True):
 		self.name = name
+		print "path+sound = %s" % (path+sound)
 		self.sound = pygame.mixer.Sound (path + sound)
 		self.RGB = colRGB
-
+		self.target = target
+		
 		# create a quest object to track how guesses are doing against this object
 		self.quest = Quest.QuestObject( -1.0, # tGuess
 						 0.3, # tGuessSd (sd of Gaussian)
@@ -122,12 +124,12 @@ class Colour:
 	# Get the target colour 
 	def getTargetColour(self):
 		# for now test
-		return (1.0, 1.0, 1.0)
+		return (1.0, 0.0, 0.0)
 
 	# This will be the target colour with a quest variation
 	def getQuestColour(self):
 		# for now test
-		return (.5, .5, .5)
+		return (0.0, 1.0, 0.0)
 
 #        def setUpQuest(self):
 #                tGuess = -1.0
@@ -349,7 +351,12 @@ class ExpPresentation:
                                                 
                 self.viewport_fixation  = Viewport( screen = self.experiment.screen, stimuli=[self.fix1,self.fix2] ) #fixation cross
                 self.viewport_trial     = Viewport( screen = self.experiment.screen) #set dynamically below
-
+                # Define the generic sounds (colour sounds are embedded in Colour)
+#                self.wrongSound =       pygame.mixer.Sound(path + "\\stimuli\\" + "Buzz3.wav")
+#                self.correctSound =     pygame.mixer.Sound(path + "\\stimuli\\" + "Bleep3.wav")
+                self.carrierSound =     pygame.mixer.Sound(path + "\\stimuli\\" + "areTheTwo.wav")
+                self.sameSound =        pygame.mixer.Sound(path + "\\stimuli\\" + "same.wav")
+                self.diffSound =        pygame.mixer.Sound(path + "\\stimuli\\" + "diff.wav")
                 
                 
         def convertFromRGB(self,decimalTriplet):
@@ -441,7 +448,7 @@ class ExpPresentation:
                         sys.exit()
         
 
-        def isResponseCorrect(self,response, firstStim, secondStim):
+        def isResponseCorrect(self, response, firstStim, secondStim):
                 if response == self.experiment.sameResp and list(firstStim)==list(secondStim):
                         return True
                 if response == self.experiment.diffResp and list(firstStim) != list(secondStim):
@@ -481,28 +488,27 @@ class ExpPresentation:
         # an isRight/isWrong response for the next iterations calculations
         #
    
-        def presentExperimentTrial(self,curBlock,trialIndex,whichPart,color1,color2):
+        def presentExperimentTrial(self,curBlock,trial,whichPart,color1,color2):
 
                 #
                 # Play the sound cue. 
                 #
                 def playAudioCue(self):
-                        def playAndWait(sound):
+
+			# Play a sound until pygame has finished it
+			def playAndWait(sound):
                                 sound.play()
                                 while pygame.mixer.get_busy():
-                                        clock.tick(30)                          
-                        colorCategory = self.trialListMatrix[trialIndex].colorCategory
-                        isLabel = int(self.trialListMatrix[trialIndex].isLabel)
-                        colorSoundsDict = {'red': self.redSound, 'green': self.greenSound, 'blue': self.blueSound}
+                                        clock.tick(30)
 
+			# Play the intro
                         clock = pygame.time.Clock()
                         playAndWait(self.carrierSound)
-                        
-                        if isLabel==1:
-                                playAndWait(colorSoundsDict[colorCategory])
-                        else:
-                                playAndWait(self.colorSound)
 
+			# And the colour sound
+			playAndWait(trial.colour.sound)
+
+			# The same?
                         playAndWait(self.sameSound)
 
                 # start of presentExperimentTrial
@@ -555,7 +561,7 @@ class ExpPresentation:
                 
                 responded = False
                 timeElapsed = False
-                pygame.event.clear() #d  count any keypresses
+                pygame.event.clear() #discount any keypresses
                 responseStart = time.time()
                 while not responded: 
                         # VE: self.setAndPresentStimulus([self.fix1, self.fix2,self.firstStim, self.secondStim]) #fixation + first pic + second pic
@@ -566,30 +572,12 @@ class ExpPresentation:
                                         pygame.event.clear()
                                         responded = True
                                         break
-                isRight = self.isResponseCorrect(response, color1,color2)
-                #play feedback
-                #if isRight:
-                        #self.correctSound.play()
-                #else:
-                        #self.wrongSound.play()
-                isSame = bool(list(color1)==list(color2))
-                print "isRight " + str(isRight) + "rt: " + str(rt)
-                curLine = self.createResponse(
-			whichPart=whichPart, 
-			curBlock=curBlock+1,
-			trialIndex=trialIndex+1,
-			colorCategory=self.trialListMatrix[trialIndex].colorCategory,
-			isLabel = self.trialListMatrix[trialIndex].isLabel,
-			sameDiff=self.trialListMatrix[trialIndex].sameDiff,
-			curDistance = self.curDistance,
-			locationOne = self.locations[0],
-			locationTwo = self.locations[1],
-			firstStim=color1,
-			secondStim=color2,
-			rt=rt*1000,
-			isRight=isRight) 
-                self.writeToFile(self.experiment.outputFile,curLine)
-                return bool(isRight)
+
+		# Was the response correct
+                isRight = self.isResponseCorrect(response, color1, color2)
+
+		print "presentExperimentTrial: correct:%s time:%f" % (isRight, rt)
+		return isRight
 
         def HSL_2_RGB(self,(H,S,L)):
                 
@@ -709,7 +697,7 @@ class ExpPresentation:
 				# Time to get the colours
 				targetColour = trial.colour.getTargetColour()
 				questColour = trial.colour.getQuestColour()
-				print "%s => quest %s" % (targetColour, questColour)
+				print "actual %s => quest %s" % (targetColour, questColour)
 
 				# Shuffle the first and second colours
 				if random.random>.5:
@@ -721,16 +709,13 @@ class ExpPresentation:
 
 				# If it's a "same" experiment make both either quest or target colour
 				if trial.type == "same":
-					secondColour = firstColour
-				else:
 					firstColour = secondColour
 					
-				print "firstColour: %s" % (firstColour)
-				print "secondColour: %s" % (secondColour)
+				print "first %s second %s" % (firstColour, secondColour)
                                                 
                                 #set the colors
-                                self.firstStim.parameters.color = list(firstColor)
-                                self.secondStim.parameters.color = list(secondColor)
+                                self.firstStim.parameters.color = list(firstColour)
+                                self.secondStim.parameters.color = list(secondColour)
                                 
                                 #set the screen locations of the stimuli
                                 self.firstLocation = self.locations[0]
@@ -739,19 +724,14 @@ class ExpPresentation:
                                 self.secondStim.parameters.position = self.experiment.stimPositions[self.secondLocation] 
                                 
                                 """This is what's shown on every trial"""
-                                response = self.presentExperimentTrial(curBlock,trial,whichPart,firstColor,secondColor)
+                                response = self.presentExperimentTrial(curBlock,trial,whichPart,firstColour,secondColour)
                                 
 				# If this was a difference trial we need to update the colour distances
 				# based on the response given.
-                		if trail.type == "diff":
-					targetColour.stepQuest(response)
+                		if trial.type == "diff":
+					trial.colour.stepQuest(response)
                                         
-                                        
-                                print str(response) + " " + str(self.curDistance) + str(firstColor) + " " + str(secondColor) + "\n"     
-                        # Get final estimate.
-                        #t=self.q.mean()
-                        #sd=self.q.sd()
-                        #self.q.beta_analysis()                 
+                                print "Done: " + str(response) + "\n"
 
 """
 This is the start of the Experiment
