@@ -38,6 +38,7 @@ import optparse
 from optparse import OptionParser
 import glob
 import os
+import sys
 import random
 from math import *
 import numpy as num
@@ -52,9 +53,10 @@ import numpy as num
 path = os.getcwd() 
 print 'path is ' + str(path)
 os.environ["PYTHONPATH"]=path
+sys.path.append(path)
 
-import PyVSG
 import Quest
+import PyVSG
 
 ############################
 # Globals                  #
@@ -87,15 +89,15 @@ class Colour:
 		cie_str = "cie: %f, %f, %f" % (self.CIE.a, self.CIE.b, self.CIE.c)
 		
 		if self.target:
-			str = "Target Colour: %s (%s/%s)" % (self.name,
+			st = "Target Colour: %s (%s/%s)" % (self.name,
 							     rgb_str,
 							     cie_str)
 		else:
-			str = "Quest Colour: %s (%s/%s)" % (self.name,
+			st = "Quest Colour: %s (%s/%s)" % (self.name,
 							    rgb_str,
 							    cie_str)
 			
-		return str
+		return st
 
 	# class contructor
 	def __init__(self, name, colRGB, offset=0.15, delta=0.02, sound="", target=True):
@@ -179,6 +181,12 @@ class Colour:
 	def asCIE(self):
 		return self.CIE
 
+	# Makes the result handling neater
+	def asCIEstr(self):
+		val = "%f,%f,%f" % (self.CIE.a, self.CIE.b, self.CIE.c)
+		return val
+		
+
 	#
 	# calculateColourDistance
 	#
@@ -188,15 +196,15 @@ class Colour:
 	def calculateColourDistance(self, questColour):
 		if (questColour.CIE.b == self.CIE.b and questColour.CIE.c == self.CIE.c):
 			distance = self.CIE.a - questColour.CIE.a
-			str = "%f" % distance
+			st = "%f" % distance
 		else:
-			str = "Error u* (%s/%s) v* (%s/%s) should be indentical" % (
+			st = "Error u* (%s/%s) v* (%s/%s) should be indentical" % (
 				questColour.CIE.b,
 				self.CIE.b,
 				questColour.CIE.c,
 				self.CIE.c )
 
-		return str
+		return st
 	
 	
 # Define class to wrap up an individual trial		
@@ -204,8 +212,8 @@ class Trial:
 
 	# Generate a printable reprentation of this trial
 	def __str__(self):
-		str = "Trial: %s, %s" % (self.colour.name, self.type)
-		return str
+		st = "Trial: %s, %s" % (self.colour.name, self.type)
+		return st
 	
 	def __init__(self, colour, sameDiff):
 		self.colour = colour
@@ -286,7 +294,7 @@ class Exp:
                         self.outputFile = file(self.subjVariables['subjCode']+'.txt','w')
 
                 print "End of Exp:__init__"
-                #print self.subjVariables
+                print self.subjVariables
 
         def getSubjVariables(self):
                 def checkInput(value,options,type):
@@ -307,25 +315,22 @@ class Exp:
                                 curValue = str(curValue.upper())
                         self.subjVariables[varInfo['name']] = curValue
                 
-        def setupSubjectVariables(self):
-                parser = OptionParser()
-                parser.add_option("-s", "--subject-id", dest="subjid", help="specify the subject id")
-
-                (options, args)         = parser.parse_args()
-                self.subjID             = options.subjid
-
-                if not self.subjID:
-                        print "You must provide a Subject ID and design_file"
-                        parser.print_help()
-                        sys.exit()
-        
-                
-        def writeToFile(self,fileHandle,trial):
+        def writeToFile(self,trial):
                 """Writes a trial (array of lists) to a fileHandle"""
                 line = '\t'.join([str(i) for i in trial]) #TABify
                 line += '\n' #add a newline
-                fileHandle.write(line)
+		#print "writeToFile:" + str(line)
+                self.outputFile.write(line)
+		self.outputFile.flush() # write to disk now!
 
+	# Store our results
+	def storeResults(self, results):
+		# First add the subject info
+		results.insert(0,self.subjVariables["gender"])
+		results.insert(0,self.subjVariables["subjCode"])
+		#print "results:" + str(results)
+		self.writeToFile(results)
+		
         def convertFromPresentationStyleCoordinates(self,(xy),width=0):
                 x=xy[0]
                 y=xy[1]
@@ -507,33 +512,7 @@ class ExpPresentation:
                 if response == self.experiment.diffResp and col1!=col2:
                         return True
                 return False
-
                 
-        #I don't think we need this function for sameDiff...
-        def createResponse(self,**respVars):
-                trial = [] #initalize array
-                #add all the subject variables to the response line
-                for curSubjVar, varInfo in sorted(self.experiment.allSubjVariables.items()):
-                        trial.append(self.experiment.subjVariables[varInfo['name']])
-                trial.append(str(respVars['whichPart']))
-                trial.append(str(respVars['curBlock']))
-                trial.append(str(respVars['trialIndex']))
-                trial.append(str(respVars['colorCategory']))
-                trial.append(str(respVars['isLabel']))
-                trial.append(str(respVars['sameDiff']))
-                trial.append(str(respVars['curDistance']))
-                trial.append(str(respVars['firstStim'][0])) #divides up the colors into RGB intensities for printing
-                trial.append(str(respVars['firstStim'][1]))
-                trial.append(str(respVars['firstStim'][2]))
-                trial.append(str(respVars['secondStim'][0]))
-                trial.append(str(respVars['secondStim'][1]))
-                trial.append(str(respVars['secondStim'][2]))
-                trial.append(str(respVars['locationOne']))
-                trial.append(str(respVars['locationTwo']))
-                trial.append(str(respVars['rt']))
-                trial.append(str(respVars['isRight']))
-                return trial
-
         #
         # presentExperimentTrial
         #
@@ -642,6 +621,17 @@ class ExpPresentation:
 		print "presentExperimentTrial: correct:%s time:%f dist:%s" % (isRight, rt, dist)
 
 		# Dump run to results file.
+		results = []
+		results.append(expNo)
+		results.append(leftCol.name)
+		results.append(trial.type)
+		results.append(isRight)
+		results.append(leftCol.asCIEstr())
+		results.append(rightCol.asCIEstr())
+		results.append(dist)
+		results.append(rt)
+		self.experiment.storeResults(results)
+		
 		
 		return isRight
 
