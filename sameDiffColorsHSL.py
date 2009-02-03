@@ -76,10 +76,9 @@ class Colour:
 		cie_str = "cie: %f, %f, %f" % (self.CIE.a, self.CIE.b, self.CIE.c)
 		
 		if self.target:
-			str = "Target Colour: %s (%s/%s) current quantile: %s" % (self.name,
-									   rgb_str,
-									   cie_str,
-									   self.quest.quantile())
+			str = "Target Colour: %s (%s/%s)" % (self.name,
+							     rgb_str,
+							     cie_str)
 		else:
 			str = "Quest Colour: %s (%s/%s)" % (self.name,
 							    rgb_str,
@@ -87,7 +86,7 @@ class Colour:
 			
 		return str
 	
-	def __init__(self, name, colRGB, offset=0.15, sound="", target=True):
+	def __init__(self, name, colRGB, offset=0.15, delta=0.02, sound="", target=True):
 		self.name = name
 
 		# Set the colours up
@@ -105,6 +104,7 @@ class Colour:
 			print "offset is %f" % offset
 			# For this experiment we vary CIE.a (i.e L*)
 			var = self.CIE.a + offset
+			self.delta = float(delta)
 			self.quest = Quest.QuestObject(  var, # tGuess
 							 0.3, # tGuessSd (sd of Gaussian)
 							 0.7, # pThreshold
@@ -113,21 +113,25 @@ class Colour:
 							 0.5,  # gamma
 							 0.03  # grain
 							 )
-		# debug
-		print "Created %s" % (self.__str__())
+			print "Created %s" % (self.__str__())
+			
 		
 	# Update the Quest Object, response is a True/False bool
-	# where True indicates the response was correct
-	def stepQuest(self, response):
-		
-		# get the current quest value and make the guess +- 0.02
-		tTest = self.quest.quantile()
-		tNew = tTest+random.choice([-0.02, 0, 0.02])
-		print "Colour::stepQuest %s => %s" % (tTest, tNew)
+	# where True indicates the response was correct.
+	#
+	# I'm fairly sure you should update the Quest object with the current intensity
+	# but the original code varied tTest before updating it.
+	def updateQuest(self, qColour, response):
+		tOld = self.quest.quantile()
+		# Get the value we where changing
+		value = qColour.CIE.a
+		self.quest.update(value, response)
+		tNew = self.quest.quantile()
+
+		# tOld and qColour will vary
+		print "Colour::updateQuest %s/%s => %s" % (tOld, value, tNew)
 
 		# update the quest object
-		self.quest.update(tNew, response)
-		return tTest
 
 
 	# used for getQuestColour as we actually work in CIE
@@ -150,7 +154,8 @@ class Colour:
 		# (the RGB will be updated via VISAGE's colour space conversion)
 		fakeRGB = (0.0, 0.0, 0.0)
 		questCol = Colour(self.name, (fakeRGB), target=False)
-		questCol.setColourCIE(self.quest.quantile(), self.CIE.b, self.CIE.c)
+		tNew = self.quest.quantile() + random.choice( [-self.delta, 0.0, self.delta])
+		questCol.setColourCIE(tNew, self.CIE.b, self.CIE.c)
 		return questCol
 
 	# As VisionEgg wants these we create a list
@@ -162,6 +167,25 @@ class Colour:
 	def asCIE(self):
 		return self.CIE
 
+	#
+	# calculateColourDistance
+	#
+	# To abstract it awy from the experiment so it can be tweaked for different
+	# colour spaces.
+	#
+	def calculateColourDistance(self, questColour):
+		if (questColour.CIE.b == self.CIE.b and questColour.CIE.c == self.CIE.c):
+			distance = self.CIE.a - questColour.CIE.a
+			str = "%f" % distance
+		else:
+			str = "Error u* (%s/%s) v* (%s/%s) should be indentical" % (
+				questColour.CIE.b,
+				self.CIE.b,
+				questColour.CIE.c,
+				self.CIE.c )
+
+		return str
+	
 	
 # Define class to wrap up an individual trial		
 class Trial:
@@ -404,7 +428,8 @@ class ExpPresentation:
 		colour = Colour(array[1],
 			        rgb,
 				float(array[3]),
-				array[4])
+				float(array[4]),
+				array[5])
 		listOfColours.append(colour)
 
 	# Parse a line of the experiment control file
@@ -640,52 +665,6 @@ class ExpPresentation:
         
         def getPsychometricFunctions(self,whichPart):
 
-                # def updateColorDistance(self):
-                #         colorCategory = self.trialListMatrix[trialIndex].colorCategory
-                #         isLabel = int(self.trialListMatrix[trialIndex].isLabel)
-                #         if colorCategory=="red":
-                #                 if isLabel:
-                #                         self.curDistanceRedL = self.stepQuest(self.qRedL,response)
-                #                 else:
-                #                         self.curDistanceRedNL = self.stepQuest(self.qRedNL,response)
-                #         elif colorCategory=="green":
-                #                 if isLabel:
-                #                         self.curDistanceGreenL = self.stepQuest(self.qGreenL,response)
-                #                 else:
-                #                         self.curDistanceGreenNL = self.stepQuest(self.qGreenNL,response)
-                #         elif colorCategory=="blue":
-                #                 if isLabel:
-                #                         self.curDistanceBlueL = self.stepQuest(self.qBlueL,response)
-                #                 else:
-                #                         self.curDistanceBlueNL = self.stepQuest(self.qBlueNL,response)
-                                
-
-                # def setBaseColorAndDistance(self):
-                #         colorCategory = self.trialListMatrix[trialIndex].colorCategory 
-                #         isLabel = int(self.trialListMatrix[trialIndex].isLabel)
-                #         print "isLabel is " + str(isLabel)
-                #         if colorCategory=="red":
-                #                 self.baseColor = self.convertFromRGB(self.HSL_2_RGB(num.array([0.0,1.0,.35]))) #0, 100, 84
-                #                 print "red RGB basecolor is " + str(self.baseColor)
-                #                 if isLabel==1:
-                #                         self.curDistance = self.curDistanceRedL
-                #                 else:
-                #                         self.curDistance = self.curDistanceRedNL                                        
-                #         elif colorCategory=="green":
-                #                 self.baseColor = self.convertFromRGB(self.HSL_2_RGB(num.array([0.308,1.0,.35]))) #111, 100, 84
-                #                 print "green RGB basecolor is " + str(self.baseColor)
-                #                 if isLabel==1:
-                #                         self.curDistance = self.curDistanceGreenL
-                #                 else:
-                #                         self.curDistance = self.curDistanceGreenNL
-                #         elif colorCategory=="blue":
-                #                 self.baseColor = self.convertFromRGB(self.HSL_2_RGB(num.array([0.675,1.0,.35]))) #243, 100, 84
-                #                 print "blue RGB basecolor is " + str(self.baseColor)
-                #                 if isLabel==1:
-                #                         self.curDistance = self.curDistanceBlueL
-                #                 else:
-                #                         self.curDistance = self.curDistanceBlueNL
-
                 print "getPsychometricFunctions"
                 self.locations = ["left","right"]
 
@@ -749,9 +728,10 @@ class ExpPresentation:
 				# If this was a difference trial we need to update the colour distances
 				# based on the response given.
                 		if trial.type == "diff":
-					trial.colour.stepQuest(response)
-                                        
-                                print "Done: " + str(response) + "\n"
+					trial.colour.updateQuest(questColour, response)
+
+				dist = targetColour.calculateColourDistance(questColour)
+                                print "Done: " + str(response) + " Distance: " + dist + "\n"
 
 """
 This is the start of the Experiment

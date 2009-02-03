@@ -6,28 +6,29 @@
 # Define Colours:
 #   name: A label we use to describe the colour later in the
 #   rgb values: The Red, Green, Blue components as floats 0.0-1.0
-#   offset: The initial offset from ideal when we set up the Quest algo
+#   offset: The initial offset from ideal when we set up the Quest
+#   delta: The +/i variant for each step
 #   wav file: A wav file we play for the audio prompt
 #
-# define <name> <rgb values>  <offset> 	       <wav file>
-define	red	1.0,0.0,0.0   0.15	       stimuli/reds.wav
-define  red-ul  1.0,0.0,0.0   0.15	       stimuli/colors.wav
-define	green	0.0,1.0,0.0   -0.05	       stimuli/greens.wav
-define	blue	0.0,0.0,1.0   0.02	       stimuli/blues.wav
+# define <name> <rgb values>  <offset> <delta>	       <wav file>
+define	red	1.0,0.0,0.0   0.15     0.02       stimuli/reds.wav
+define  red-ul  1.0,0.0,0.0   0.15     0.02	  stimuli/colors.wav
+define	green	0.0,1.0,0.0   -0.02    0.005	  stimuli/greens.wav
+define	blue	0.0,0.0,1.0   0.02     0.005	  stimuli/blues.wav
 #
 #
 # These are the actual experiments. If the colour isn't defined
 # earlier this will cause a problem.
 # <colour> <same/diff>
-red	same
-green	diff
+#red	same
 red	diff
+green	diff
 blue	diff
-green	same
-red-ul	diff
-blue	same
-red-ul	same
-blue 	same
+#green	same
+#red-ul	diff
+#blue	same
+#red-ul	same
+#blue 	same
 # red	diff
 # red	diff
 # red	diff
