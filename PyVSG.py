@@ -144,7 +144,7 @@ class PyVSG:
             self.current_pen = self.current_pen+1
             self.vsgPaletteSet(self.current_pen, colour)
             self.vsgSetPen1(self.current_pen)
-            print "Current pen is %d (%f, %f, %f)" % (self.current_pen, colour.a, colour.b, colour.c)
+#            print "Current pen is %d (%f, %f, %f)" % (self.current_pen, colour.a, colour.b, colour.c)
                 
     """
     Draw a rectangle

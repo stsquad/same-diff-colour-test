@@ -636,8 +636,13 @@ class ExpPresentation:
 
 		# Was the response correct
                 isRight = self.isResponseCorrect(response, leftCol, rightCol)
+		dist = leftCol.calculateColourDistance(rightCol)
 
-		print "presentExperimentTrial: correct:%s time:%f" % (isRight, rt)
+		
+		print "presentExperimentTrial: correct:%s time:%f dist:%s" % (isRight, rt, dist)
+
+		# Dump run to results file.
+		
 		return isRight
 
 
@@ -679,8 +684,6 @@ class ExpPresentation:
 				# Time to get the colours
 				targetColour = trial.colour
 				questColour = targetColour.getQuestColour()
-				print "Actual %s" % (targetColour)
-				print "Quest %s" % (questColour)
 
 				# Shuffle the first and second colours
 				if random.random()>.5:
@@ -694,8 +697,8 @@ class ExpPresentation:
 				if trial.type == "same":
 					firstColour = secondColour
 					
-				print "First %s" % (firstColour)
-				print "Second %s" % (secondColour)
+				print "First is %s" % (firstColour)
+				print "Second is %s" % (secondColour)
 
 				# For future expansion it may make sense to pass the colours around in
 				# and array.
@@ -709,8 +712,9 @@ class ExpPresentation:
                 		if trial.type == "diff":
 					trial.colour.updateQuest(questColour, response)
 
-				dist = targetColour.calculateColourDistance(questColour)
-                                print "Done: " + str(response) + " Distance: " + dist + "\n"
+					# exit condition?
+
+                                print "Done Trial\n"
 
 """
 This is the start of the Experiment
