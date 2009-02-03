@@ -85,7 +85,8 @@ class Colour:
 							    cie_str)
 			
 		return str
-	
+
+	# class contructor
 	def __init__(self, name, colRGB, offset=0.15, delta=0.02, sound="", target=True):
 		self.name = name
 
@@ -627,39 +628,6 @@ class ExpPresentation:
 
 		print "presentExperimentTrial: correct:%s time:%f" % (isRight, rt)
 		return isRight
-
-        def HSL_2_RGB(self,(H,S,L)):
-                
-                def rounded(float):
-                        return int(math.floor(float+0.5))
-                                                
-                def Hue_2_RGB(v1, v2, vH):
-                        if ( vH < 0 ):
-                                vH += 1
-                        if ( vH > 1 ):
-                                vH -= 1
-                        if ( ( 6.0 * vH ) < 1.0 ):
-                                return ( v1 + ( v2 - v1 ) * 6.0 * vH )
-                        if ( ( 2.0 * vH ) < 1.0 ):
-                                return v2 
-                        if ( ( 3.0 * vH ) < 2.0 ):
-                                return ( v1 + ( v2 - v1 ) * ( .666667 - vH ) * 6.0 )
-                        return v1 
-
-                if (S == 0 ):
-                        R = L * 255
-                        G = L * 255
-                        B = L * 255
-                else:
-                        if ( L < 0.5 ):
-                                var_2 = L * ( 1 + S )
-                        else:
-                                var_2 = ( L + S ) - ( S * L )
-                        var_1 = 2 * L - var_2
-                        R = rounded(255 * Hue_2_RGB( var_1, var_2, H + .333333 ))
-                        G = rounded(255 * Hue_2_RGB( var_1, var_2, H ))
-                        B = rounded(255 * Hue_2_RGB( var_1, var_2, H - .333333 ))
-                return num.array([R,G,B])
 
 
         
