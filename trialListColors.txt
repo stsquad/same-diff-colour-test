@@ -13,8 +13,8 @@
 # define <name> <rgb values>  <offset> <delta>	       <wav file>
 define	red	1.0,0.0,0.0   0.15     0.02       stimuli/reds.wav
 define  red-ul  1.0,0.0,0.0   0.15     0.02	  stimuli/colors.wav
-define	green	0.0,1.0,0.0   -0.02    0.005	  stimuli/greens.wav
-define	blue	0.0,0.0,1.0   0.02     0.005	  stimuli/blues.wav
+define	green	0.0,1.0,0.0   -0.01    0.001	  stimuli/greens.wav
+define	blue	0.0,0.0,1.0   0.01     0.001	  stimuli/blues.wav
 #
 #
 # These are the actual experiments. If the colour isn't defined
