@@ -1,4 +1,15 @@
 #!/usr/bin/env python
+#
+# sameDiffColours
+#
+# A psychological colour perception experiment.
+#
+# (C) 2009 Gary Lupyan - original test
+# (C) 2009 Alex Bennee <alex@bennee.com> - refactoring and VISAGE hacks
+#
+# This program is licensed under the GPLv3. The VisionEgg and Quest algorithm have their
+# own license restrictions. Please see those files for details.
+#
 
 """To Do:
 Limit exposure and mask the color swatches?
@@ -30,7 +41,6 @@ import os
 import random
 from math import *
 import numpy as num
-import Quest
 
 #
 # Bring in the PyVSG library which will be duplicating what we see on the main screen
@@ -44,6 +54,7 @@ print 'path is ' + str(path)
 os.environ["PYTHONPATH"]=path
 
 import PyVSG
+import Quest
 
 ############################
 # Globals                  #
