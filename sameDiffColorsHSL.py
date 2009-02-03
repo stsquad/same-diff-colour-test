@@ -69,25 +69,25 @@ listOfTrials = []
 #
 class Colour:
 
-	# String representaion of colour
+	# String representation of colour
 	def __str__(self):
 
-		rgb_str = "%f, %f, %f" % (self.RGB.a, self.RGB.b, self.RGB.c)
-		cie_str = "%f, %f, %f" % (self.CIE.a, self.CIE.b, self.CIE.c)
+		rgb_str = "rgb: %f, %f, %f" % (self.RGB.a, self.RGB.b, self.RGB.c)
+		cie_str = "cie: %f, %f, %f" % (self.CIE.a, self.CIE.b, self.CIE.c)
 		
 		if self.target:
-			str = "Colour: %s (%s/%s) current quantile: %s" % (self.name,
+			str = "Target Colour: %s (%s/%s) current quantile: %s" % (self.name,
 									   rgb_str,
 									   cie_str,
 									   self.quest.quantile())
 		else:
-			str = "Temp Colour: %s (%s/%s)" % (self.name,
-							   rgb_str,
-							   cie_str)
+			str = "Quest Colour: %s (%s/%s)" % (self.name,
+							    rgb_str,
+							    cie_str)
 			
 		return str
 	
-	def __init__(self, name, colRGB, sound="", target=True):
+	def __init__(self, name, colRGB, offset=0.15, sound="", target=True):
 		self.name = name
 
 		# Set the colours up
@@ -96,15 +96,15 @@ class Colour:
 
 		if sound:
 			sound_path = path + "\\" + sound
-			print "sound_path = %s" % (sound_path)
+			# print "sound_path = %s" % (sound_path)
 			self.sound = pygame.mixer.Sound (sound_path)
 
 		# Only target colours track their quest values
 		self.target = target
-
-		var = self.CIE.a + 0.15
-		
 		if target:
+			print "offset is %f" % offset
+			# For this experiment we vary CIE.a (i.e L*)
+			var = self.CIE.a + offset
 			self.quest = Quest.QuestObject(  var, # tGuess
 							 0.3, # tGuessSd (sd of Gaussian)
 							 0.7, # pThreshold
@@ -146,15 +146,11 @@ class Colour:
 	
 	# This will be the target colour with a quest variation
 	def getQuestColour(self):
-		# this is just a test, we should poke it with actuall colour data based on the
-		# quest later.
-		testRGB = (0.0, 1.0, 0.0)
-		questCol = Colour(self.name, (testRGB), "", False)
+		# We create a new colour object and then manually set the CIE colour
+		# (the RGB will be updated via VISAGE's colour space conversion)
+		fakeRGB = (0.0, 0.0, 0.0)
+		questCol = Colour(self.name, (fakeRGB), target=False)
 		questCol.setColourCIE(self.quest.quantile(), self.CIE.b, self.CIE.c)
-		
-		print "getQuestColour: %s" % (self.__str__())
-		# Calculate the quest colour
-		
 		return questCol
 
 	# As VisionEgg wants these we create a list
@@ -180,14 +176,6 @@ class Trial:
 		self.type = sameDiff
 		print "Created %s" % (self.__str__())
 	
-	
-#class trial(Exp): 
-#        def __init__(self):
-#                colorCategory=''
-#                isLabel=''
-#                sameDiff=''
-
-
 class Exp:
         def __init__(self):
         
@@ -415,7 +403,8 @@ class ExpPresentation:
 			rgb.append(float(c))
 		colour = Colour(array[1],
 			        rgb,
-				array[3])
+				float(array[3]),
+				array[4])
 		listOfColours.append(colour)
 
 	# Parse a line of the experiment control file

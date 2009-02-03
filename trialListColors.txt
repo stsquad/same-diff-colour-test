@@ -3,13 +3,17 @@
 # Line beginning with # are comments and ignored by the script
 # Paramters are seperated by whitespace (tabs & spaces)
 #
+# Define Colours:
+#   name: A label we use to describe the colour later in the
+#   rgb values: The Red, Green, Blue components as floats 0.0-1.0
+#   offset: The initial offset from ideal when we set up the Quest algo
+#   wav file: A wav file we play for the audio prompt
 #
-# First we need to define some colours used by the script
-# define <name> <rgb values> <wav file>
-define	red	1.0,0.0,0.0	stimuli/reds.wav
-define  red-ul  1.0,0.0,0.0	stimuli/colors.wav
-define	green	0.0,1.0,0.0  	stimuli/greens.wav
-define	blue	0.0,0.0,1.0	stimuli/blues.wav
+# define <name> <rgb values>  <offset> 	       <wav file>
+define	red	1.0,0.0,0.0   0.15	       stimuli/reds.wav
+define  red-ul  1.0,0.0,0.0   0.15	       stimuli/colors.wav
+define	green	0.0,1.0,0.0   -0.05	       stimuli/greens.wav
+define	blue	0.0,0.0,1.0   0.02	       stimuli/blues.wav
 #
 #
 # These are the actual experiments. If the colour isn't defined
