@@ -11,30 +11,26 @@
 #   wav file: A wav file we play for the audio prompt
 #
 # define <name> <rgb values>  <offset> <delta>	       <wav file>
-define	red	1.0,0.0,0.0   0.15     0.02       stimuli/reds.wav
-define  red-ul  1.0,0.0,0.0   0.15     0.02	  stimuli/colors.wav
-define	green	0.0,1.0,0.0   -0.01    0.001	  stimuli/greens.wav
-define	blue	0.0,0.0,1.0   0.01     0.001	  stimuli/blues.wav
+define	red	1.0,0.0,0.0   -0.08     0.025      stimuli/reds.wav
+define  red-ul  1.0,0.0,0.0   -0.08    0.025	  stimuli/colors.wav
+define	green	0.0,1.0,0.0   -0.08    0.025	  stimuli/greens.wav
+define	green-ul 0.0,1.0,0.0  -0.08    0.025	  stimuli/colors.wav
+define	blue	0.0,0.0,1.0   -0.08     0.025	  stimuli/blues.wav
+define	blue-ul	0.0,0.0,1.0   -0.08    0.025	  stimuli/colors.wav
 #
 #
 # These are the actual experiments. If the colour isn't defined
 # earlier this will cause a problem.
 # <colour> <same/diff>
-#red	same
+red	same
 red	diff
+red-ul	diff
+red-ul	same
 green	diff
+green	same
+green-ul diff
+green-ul same
 blue	diff
-#green	same
-#red-ul	diff
-#blue	same
-#red-ul	same
-#blue 	same
-# red	diff
-# red	diff
-# red	diff
-# red	diff
-# red	same
-# red	diff
-# red	same
-# red	diff
-# red	same
+blue 	same
+blue-ul same
+blue-ul diff
