@@ -55,7 +55,7 @@ class PyVSG:
                 self.height = self.vsgDll.vsgGetScreenHeightPixels()
                 self.width = self.vsgDll.vsgGetScreenWidthPixels()
                 self.vsgDll.vsgSetDrawPage(vsgVIDEOPAGE, 0, 0)
-                print "Cool, we seems to have a %dx%d screen" % (self.height, self.width)
+                print "Cool, we seems to have a %dx%d screen" % (self.width, self.height)
         else:
             # Don't do the calls, but do fake things
             self.active = False
@@ -84,6 +84,15 @@ class PyVSG:
             self.current_pen = 0
             if res < 0:
                 print "vsgSetDrawPage failed"
+
+    """
+    Sets the draing origin point (default at start up is 0,0 middle of screen +x right, -y up)
+    """
+    def vsgSetDrawOrigin(self, x, y):
+        if self.active:
+            res = self.vsgDll.vsgSetDrawOrigin(c_double(x), c_double(y))
+            if res < 0:
+                print "vsgSetDrawOrigin failed"
 
     """
     Set the colour space of the visage system
