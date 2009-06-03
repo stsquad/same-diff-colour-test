@@ -120,12 +120,12 @@ class Colour:
                         var = self.CIE.a + offset
                         self.delta = float(delta)
                         self.quest = Quest.QuestObject(  var, # tGuess
-                                                         0.3, # tGuessSd (sd of Gaussian)
+                                                         0.2, # tGuessSd (sd of Gaussian)
                                                          0.7, # pThreshold
                                                          3.5, # beta
                                                          0.01, # delta
                                                          0.5,  # gamma
-                                                         0.03  # grain
+                                                         0.05  # grain
                                                          )
                         print "Created %s" % (self.__str__())
                         
@@ -209,12 +209,11 @@ class Trial:
 
         # Generate a printable reprentation of this trial
         def __str__(self):
-                st = "Trial: %s, %s" % (self.colour.name, self.type)
+                st = "Trial: %s" % (self.colour.name)
                 return st
         
-        def __init__(self, colour, sameDiff):
+        def __init__(self, colour):
                 self.colour = colour
-                self.type = sameDiff
                 print "Created %s" % (self.__str__())
         
 class Exp:
@@ -225,11 +224,7 @@ class Exp:
                                                 'prompt' : 'Enter Subject Code: ', 
                                                 'options': ('any'), 
                                                 'type' : str}, 
-                                         '2' : {'name' : 'whichSame', 
-                                                'prompt' : 'Which Key for Same: z or /: ', 
-                                                'options' : ("Z","/"), 
-                                                'type' : str},
-                                         '3' : {'name' : 'gender', 
+                                         '2' : {'name' : 'gender', 
                                                 'prompt' : 'Enter Subject Gender M/F: ', 
                                                 'options' : ("M","F"), 
                                                 'type' : str}}
@@ -255,28 +250,25 @@ class Exp:
                 
                 self.preFixationDelay  =        0.250
                 self.postFixationDelay  =       0.500
-                if self.subjVariables['whichSame'] == "Z":
-                        self.sameResp = pygame.locals.K_z
-                        self.diffResp = pygame.locals.K_SLASH
-                        responseText = "Press the 'z' key for 'Yes' (the two colors are exactly the same) and the '/' key for 'No' (the two colors are slightly different)"
-                else:
-                        self.sameResp = pygame.locals.K_SLASH
-                        self.diffResp = pygame.locals.K_z
-                        responseText = "Press the '/' key for 'Yes' (the two colors are exactly the same) and the 'z' key for 'No' (the two colors are slightly different)"
-                
 
                 self.stimPositions = {}
-                self.stimPositions['left'] = self.convertFromPresentationStyleCoordinates((-75,0))
-                self.stimPositions['right'] = self.convertFromPresentationStyleCoordinates((75,0))
-                
+                self.stimPositions['left-top'] = self.convertFromPresentationStyleCoordinates((-75,75))
+                self.stimPositions['right-top'] = self.convertFromPresentationStyleCoordinates((75,75))
+                self.stimPositions['left-bottom'] = self.convertFromPresentationStyleCoordinates((-75,-75))                
+                self.stimPositions['right-bottom'] = self.convertFromPresentationStyleCoordinates((75,-75))
+		
                 self.numBlocks = 30
-                self.numPracticeTrials = 5
-                self.numStaircaseTrials = 400
-                self.takeBreakEveryXTrials = 400 
+                self.takeBreakEveryXTrials = 5
+		
                 self.finalText              = "You've come to the end of the experiment.  Thank you for participating."
                 self.instructions               = \
-                """In this experiment you will see pairs of colors.  Sometimes the colors will be identical.  Other times they will be very slightly different shades of red.  Before each trial, you will hear a voice ask if the two colors or the two reds are the same.  If they are *exactly* the same, respond 'yes'.  If they are at all different, respond 'no'.  Whether you hear 'red' or 'colors' doesn't matter because all the colors you see will be shades of red.\n\n\n"""
-                self.instructions = self.instructions + responseText
+		"""In this experiment you will see four colors arranged in a square. One of those colors will be different from the others.  Your task is to decide which color is different. Before each trial, you will hear a voice ask which of the colors or which of reds/blues/greens is different.  Your task is exactly the same regardless of whether you hear a color name or the word "color"\n\n\n"""
+		self.instructions = \
+		self.instructions + """Use the number keys on the number pad for responding in the direction of the different color:\n
+							7 | 8\n
+							--|--\n
+							4 | 5\n
+		"""		
 
                 self.thanks             = \
                 "Thank you for participating \n Please let the experimenter know if you have any questions. \
@@ -376,36 +368,52 @@ class ExpPresentation:
                         position = self.experiment.convertFromPresentationStyleCoordinates((0,0))
                         )
 
-                # left box
+		boxSize = 100
+		
+                # top left box
                 self.firstStim  = Target2D(
                         anchor = 'center',
                         color = (1,1,1),
                         on = 1,
                         orientation = 0,
-                        position = self.experiment.convertFromPresentationStyleCoordinates((-125,0)),
-                        size = (100,100)
+                        position = self.experiment.convertFromPresentationStyleCoordinates((-125,-125)),
+                        size = (boxSize,boxSize)
                         )
 
-                # right box
+                # top right box
                 self.secondStim  = Target2D(
                         anchor = 'center',
                         color = (1,1,1),
                         on = 1,
                         orientation = 0,
-                        position = self.experiment.convertFromPresentationStyleCoordinates((125,0)),
-                        size = (100,100)
+                        position = self.experiment.convertFromPresentationStyleCoordinates((125,-125)),
+                        size = (boxSize,boxSize)
                         )
 
-                
+
+		# bottom left box
+                self.thirdStim  = Target2D(
+                        anchor = 'center',
+                        color = (1,1,1),
+                        on = 1,
+                        orientation = 0,
+                        position = self.experiment.convertFromPresentationStyleCoordinates((-125,125)),
+                        size = (boxSize,boxSize)
+                        )
+
+                # bottom right box
+                self.forthStim  = Target2D(
+                        anchor = 'center',
+                        color = (1,1,1),
+                        on = 1,
+                        orientation = 0,
+                        position = self.experiment.convertFromPresentationStyleCoordinates((125,125)),
+                        size = (boxSize,boxSize)
+                        )
+
                                                 
                 self.viewport_fixation  = Viewport( screen = self.experiment.screen, stimuli=[self.fix1,self.fix2] ) #fixation cross
                 self.viewport_trial     = Viewport( screen = self.experiment.screen) #set dynamically below
-                # Define the generic sounds (colour sounds are embedded in Colour)
-#                self.wrongSound =       pygame.mixer.Sound(path + "\\stimuli\\" + "Buzz3.wav")
-#                self.correctSound =     pygame.mixer.Sound(path + "\\stimuli\\" + "Bleep3.wav")
-                self.carrierSound =     pygame.mixer.Sound(path + "\\stimuli\\" + "areTheTwo.wav")
-                self.sameSound =        pygame.mixer.Sound(path + "\\stimuli\\" + "same.wav")
-                self.diffSound =        pygame.mixer.Sound(path + "\\stimuli\\" + "diff.wav")
                 
                 
         def convertFromRGB(self,decimalTriplet):
@@ -445,20 +453,9 @@ class ExpPresentation:
                                 float(array[4]),
                                 array[5])
                 listOfColours.append(colour)
+		trial = Trial(colour)
+                listOfTrials.append(trial)
 
-        # Parse a line of the experiment control file
-        # to define an individual test block
-        def defineTrialFromLine(self, line):
-                # print "trial: %s" % line
-                array = line.split(None)
-                for colour in listOfColours:
-                        if colour.name == array[0]:
-                                trial = Trial(colour, array[1])
-                                listOfTrials.append(trial)
-                                return
-                print "Couldn't find colour definition for %s" % array[0]
-                exit()
-                
         def readTrials(self,fileName):
                 """This reads the trials from a specified file"""
                 f = file(fileName, "r")
@@ -473,9 +470,7 @@ class ExpPresentation:
                         elif line.find("define")==0:
                                 # define a colour
                                 self.defineColourFromLine(line)
-                        else:
-                                self.defineTrialFromLine(line)
-                        # next line
+			# next line
                         line = f.readline()
                 
 
@@ -502,14 +497,6 @@ class ExpPresentation:
                         print "experiment terminated by user"
                         sys.exit()
         
-
-        def isResponseCorrect(self, response, col1, col2):
-                if response == self.experiment.sameResp and col1==col2:
-                        return True
-                if response == self.experiment.diffResp and col1!=col2:
-                        return True
-                return False
-                
         #
         # presentExperimentTrial
         #
@@ -517,7 +504,7 @@ class ExpPresentation:
         # an isRight/isWrong response for the next iterations calculations
         #
    
-        def presentExperimentTrial(self,curBlock,trial,whichPart,expNo,cols):
+        def presentExperimentTrial(self,curBlock,trial,whichPart,expNo, targetColour, questColour):
 
                 #
                 # Play the sound cue. 
@@ -532,28 +519,26 @@ class ExpPresentation:
 
                         # Play the intro
                         clock = pygame.time.Clock()
-                        playAndWait(self.carrierSound)
-
                         # And the colour sound
                         playAndWait(trial.colour.sound)
 
-                        # The same?
-                        playAndWait(self.sameSound)
+		# Decide which of our 4 blocks is the odd one out (top left, top right, bottom left, bottom right)
+		oddOne = random.randint(1,4);
 
-                # start of presentExperimentTrial.
-                # get the left and right colours out of the list and set them
-                leftCol = cols[0]
-                leftCol_RGB = leftCol.asRGB()
-                leftCol_CIE = leftCol.asCIE()
+		self.firstStim.parameters.color = list(targetColour.asRGB())
+		self.secondStim.parameters.color = list(targetColour.asRGB())
+		self.thirdStim.parameters.color = list(targetColour.asRGB())
+		self.forthStim.parameters.color = list(targetColour.asRGB())
 
-                self.firstStim.parameters.color = list(leftCol_RGB)
-                
-                rightCol = cols[1]
-                rightCol_RGB = rightCol.asRGB()
-                rightCol_CIE = rightCol.asCIE()
-
-                self.secondStim.parameters.color = list(rightCol_RGB)
-
+		if oddOne == 1:
+			self.firstStim.parameters.color = list(questColour.asRGB())
+		elif oddOne == 2:
+			self.secondStim.parameters.color = list(questColour.asRGB())
+		elif oddOne == 3:
+			self.thirdStim.parameters.color = list(questColour.asRGB())
+		elif oddOne == 4:
+			self.forthStim.parameters.color = list(questColour.asRGB())
+		
                 # First clear screen and wait for some specified time
                 
                 # VE:
@@ -580,19 +565,37 @@ class ExpPresentation:
                 time.sleep(self.experiment.postFixationDelay)
 
                 # VE:
-                self.setAndPresentStimulus([self.fix1, self.fix2,self.firstStim, self.secondStim]) #fixation + first pic + second pic
+		# fixation + 4 boxes
+                self.setAndPresentStimulus([self.fix1,
+					    self.fix2,
+					    self.firstStim,
+					    self.secondStim,
+					    self.thirdStim,
+					    self.forthStim])
                 # VISAGE
                 vsg.vsgSetDrawPage(1)
                 # cross
                 vsg.vsgSetDrawColour(labWhite)
                 vsg.vsgDrawRect(0,0,10,2)
                 vsg.vsgDrawRect(0,0,2,10)
-                # left box
-                vsg.vsgSetDrawColour(leftCol_CIE)
-                vsg.vsgDrawRect(-125, 0, 100, 100)
-                # right box
-                vsg.vsgSetDrawColour(rightCol_CIE)
-                vsg.vsgDrawRect(125, 0, 100, 100)
+
+		# Draw the 4 VISAGE boxes
+                vsg.vsgSetDrawColour(targetColour.asCIE())
+                vsg.vsgDrawRect(-125, -125, 100, 100) # top left
+                vsg.vsgDrawRect(125, -125, 100, 100) # top right
+		vsg.vsgDrawRect(-125, 125, 100, 100) # bottom left
+		vsg.vsgDrawRect(125, 125, 100, 100) # bottom right
+
+		vsg.vsgSetDrawColour(questColour.asCIE())
+		if oddOne == 1:
+			vsg.vsgDrawRect(-125, -125, 100, 100)
+		elif oddOne == 2:
+			vsg.vsgDrawRect(125, -125, 100, 100)
+		elif oddOne == 3:
+			vsg.vsgDrawRect(-125, 125, 100, 100)
+		elif oddOne == 4:
+			vsg.vsgDrawRect(125, 125, 100, 100)
+
                 # switch to display 1
                 vsg.vsgSetDisplayPage(1)
                 
@@ -603,16 +606,28 @@ class ExpPresentation:
                 while not responded: 
                         # VE: self.setAndPresentStimulus([self.fix1, self.fix2,self.firstStim, self.secondStim]) #fixation + first pic + second pic
                         for event in pygame.event.get(pygame.KEYDOWN):
-                                if event.key == self.experiment.sameResp or event.key == self.experiment.diffResp:
+                                if event.key == pygame.locals.K_KP7 or event.key == pygame.locals.K_KP9 or event.key == pygame.locals.K_KP1 or event.key == pygame.locals.K_KP3:
                                         response = event.key
+					if event.key == pygame.locals.K_KP7:
+						responsePos = 1
+					elif event.key == pygame.locals.K_KP9:
+						responsePos = 2
+					elif event.key == pygame.locals.K_KP1:
+						responsePos = 3
+					elif event.key == pygame.locals.K_KP3:
+						responsePos = 4
                                         rt = time.time() - responseStart
                                         pygame.event.clear()
                                         responded = True
                                         break
 
                 # Was the response correct
-                isRight = self.isResponseCorrect(response, leftCol, rightCol)
-                dist = leftCol.calculateColourDistance(rightCol)
+		if oddOne == responsePos:
+			isRight = True
+		else:
+			isRight = False
+			
+                dist = targetColour.calculateColourDistance(questColour)
 
                 
                 print "presentExperimentTrial: correct:%s time:%f dist:%s" % (isRight, rt, dist)
@@ -620,11 +635,11 @@ class ExpPresentation:
                 # Dump run to results file.
                 results = []
                 results.append(expNo)
-                results.append(leftCol.name)
-                results.append(trial.type)
+                results.append(targetColour.name)
                 results.append(isRight)
-                results.append(leftCol.asCIEstr())
-                results.append(rightCol.asCIEstr())
+		results.append(oddOne)
+                results.append(targetColour.asCIEstr())
+                results.append(questColour.asCIEstr())
                 results.append(dist)
                 results.append(rt)
                 self.experiment.storeResults(results)
@@ -637,15 +652,8 @@ class ExpPresentation:
         def getPsychometricFunctions(self,whichPart):
 
                 print "getPsychometricFunctions"
-                self.locations = ["left","right"]
-
-                if whichPart == "practice":
-                        print "doing practice run"
-                        numTrials = self.experiment.numPracticeTrials
-                        numBlocks = 1
-                else:
-                        numTrials = len(listOfTrials)
-                        numBlocks = self.experiment.numBlocks
+		numTrials = len(listOfTrials)
+		numBlocks = self.experiment.numBlocks
 
                 totalExperiments = 0
                 
@@ -666,40 +674,16 @@ class ExpPresentation:
 
                                 print "Doing %s" % trial
 
-                                random.shuffle(self.locations) #shuffle the locations - every trial
-                                
                                 # Time to get the colours
                                 targetColour = trial.colour
                                 questColour = targetColour.getQuestColour()
 
-                                # Shuffle the first and second colours
-                                if random.random()>.5:
-                                        firstColour=targetColour
-                                        secondColour=questColour
-                                else:
-                                        firstColour=questColour
-                                        secondColour=targetColour
+				print "target is %s" % (targetColour)
+                                print "quest is %s" % (questColour)
 
-                                # If it's a "same" experiment make both either quest or target colour
-                                if trial.type == "same":
-                                        firstColour = secondColour
-                                        
-                                print "First is %s" % (firstColour)
-                                print "Second is %s" % (secondColour)
-
-                                # For future expansion it may make sense to pass the colours around in
-                                # and array.
-                                cols = [firstColour, secondColour]
-                                
                                 """This is what's shown on every trial"""
-                                response = self.presentExperimentTrial(curBlock,trial,whichPart, totalExperiments, cols)
-                                
-                                # If this was a difference trial we need to update the colour distances
-                                # based on the response given.
-                                if trial.type == "diff":
-                                        trial.colour.updateQuest(questColour, response)
-
-                                        # exit condition?
+                                response = self.presentExperimentTrial(curBlock,trial,whichPart, totalExperiments, targetColour, questColour)
+				trial.colour.updateQuest(questColour, response)
 
                                 print "Done Trial\n"
 

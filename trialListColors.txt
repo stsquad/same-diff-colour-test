@@ -17,20 +17,3 @@ define	green	0.0,1.0,0.0   -0.08    0.025	  stimuli/greens.wav
 define	green-ul 0.0,1.0,0.0  -0.08    0.025	  stimuli/colors.wav
 define	blue	0.0,0.0,1.0   -0.08     0.025	  stimuli/blues.wav
 define	blue-ul	0.0,0.0,1.0   -0.08    0.025	  stimuli/colors.wav
-#
-#
-# These are the actual experiments. If the colour isn't defined
-# earlier this will cause a problem.
-# <colour> <same/diff>
-red	same
-red	diff
-red-ul	diff
-red-ul	same
-green	diff
-green	same
-green-ul diff
-green-ul same
-blue	diff
-blue 	same
-blue-ul same
-blue-ul diff
