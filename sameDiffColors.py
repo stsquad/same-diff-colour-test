@@ -247,32 +247,31 @@ class Exp:
                 # Set VISAGE to CIE colour space
                 vsg.vsgSetColourSpace(PyVSG.vsgCS_CIE1976)
                 vsg.vsgSetDrawPage(0)
+
+		# Set 0,0 as bottom left
+		vsg.vsgSetDrawOrigin(0,vsg.height)
                 
                 self.preFixationDelay  =        0.250
                 self.postFixationDelay  =       0.500
-
-                self.stimPositions = {}
-                self.stimPositions['left-top'] = self.convertFromPresentationStyleCoordinates((-75,75))
-                self.stimPositions['right-top'] = self.convertFromPresentationStyleCoordinates((75,75))
-                self.stimPositions['left-bottom'] = self.convertFromPresentationStyleCoordinates((-75,-75))                
-                self.stimPositions['right-bottom'] = self.convertFromPresentationStyleCoordinates((75,-75))
 		
                 self.numBlocks = 30
                 self.takeBreakEveryXTrials = 5
 		
-                self.finalText              = "You've come to the end of the experiment.  Thank you for participating."
-                self.instructions               = \
-		"""In this experiment you will see four colors arranged in a square. One of those colors will be different from the others.  Your task is to decide which color is different. Before each trial, you will hear a voice ask which of the colors or which of reds/blues/greens is different.  Your task is exactly the same regardless of whether you hear a color name or the word "color"\n\n\n"""
+                self.finalText = "You've come to the end of the experiment.  Thank you for participating."
+                self.instructions = \
+		"""In this experiment you will see four colors arranged in a square. """ \
+		"""One of those colors will be different from the others.  """\
+		"""Your task is to decide which color is different. Before each trial, """\
+		"""you will hear a voice ask which of the colors or which of reds/blues/greens is different."""\
+		"""  Your task is exactly the same regardless of whether you hear a color name or the word "color"\n\n\n"""
 		self.instructions = \
-		self.instructions + """Use the number keys on the number pad for responding in the direction of the different color:\n
+		    self.instructions + """Use the number keys on the number pad for responding in the direction of the different color:\n
 							7 | 8\n
 							--|--\n
 							4 | 5\n
 		"""		
 
-                self.thanks             = \
-                "Thank you for participating \n Please let the experimenter know if you have any questions. \
-                "
+                self.thanks = "Thank you for participating \n Please let the experimenter know if you have any questions."
                 self.takeBreak = "Please take a short break.\n  Press any button when you are ready to conitnue"
                 self.practiceTrials = "The next part is practice"
                 self.realTrials = "Now for the real trials"
@@ -319,22 +318,34 @@ class Exp:
                 results.insert(0,self.subjVariables["subjCode"])
                 #print "results:" + str(results)
                 self.writeToFile(results)
-                
-        def convertFromPresentationStyleCoordinates(self,(xy),width=0):
+
+	# Convert from presentation co-ordinates (0,0 center, +x right, +y up)
+	#           to VisionEgg co-ordinates (0,0 bottom left, +x right, +y up)
+        def convertFromPresentationToVECoordinates(self,(xy),width=0):
                 x=xy[0]
                 y=xy[1]
-                print "convertFromPresentationStyleCoordinates %d x %d" % (x, y)
-
-                # Vision Egg version
+		# print "convertFromPresentationToVECoordinates: (%d x %d), width=%d" % (x, y, width)
                 nx=x + self.screen.size[0]/2 - width/2
                 ny=y + self.screen.size[1]/2
-
-                # VISAGE version
-                #nx=x + vsg.width/2 - width/2
-                #ny=y + vsg.height/2
-
+		
+                # print "  = (%d x %d)" % (nx, ny)
                 return (nx,ny)
+
                         
+	# Convert from VisionEgg co-ordinates (0,0 bottom left, +x right, +y up)
+	#           to VISAGE co-ordinates (0,0 bottom left, +x right, -y up)
+	def convertFromVEtoVSGCoordinates(self, (xy)):
+		x = xy[0]
+		y = xy[1]
+		# print "convertFromVEtoVSGCoordinates: (%d x %d)" % (x, y)
+		nx = x
+		ny = -y
+		
+		# print "  = (%d x %d)" % (nx, ny)
+		return (nx,ny)
+		
+
+
                        
 class ExpPresentation:
         """Functions related to presenting stimuli"""
@@ -348,7 +359,7 @@ class ExpPresentation:
                         color = (1,1,1),
                         on = 1,
                         orientation = 0,
-                        position = self.experiment.convertFromPresentationStyleCoordinates((0,0)),
+                        position = self.experiment.convertFromPresentationToVECoordinates((0,0)),
                         size = (2,15)
                         )
 
@@ -356,7 +367,7 @@ class ExpPresentation:
                         anchor = 'center',
                         color = (1,1,1),
                         on = 1,orientation = 0,
-                        position = self.experiment.convertFromPresentationStyleCoordinates((0,0)),
+                        position = self.experiment.convertFromPresentationToVECoordinates((0,0)),
                         size = (15,2)
                         )
 
@@ -365,7 +376,7 @@ class ExpPresentation:
                         anchor = 'center',
                         text = 'testing',
                         color = (1,1,1),
-                        position = self.experiment.convertFromPresentationStyleCoordinates((0,0))
+                        position = self.experiment.convertFromPresentationToVECoordinates((0,0))
                         )
 
 		boxSize = 100
@@ -373,20 +384,20 @@ class ExpPresentation:
                 # top left box
                 self.firstStim  = Target2D(
                         anchor = 'center',
-                        color = (1,1,1),
+                        color = (1,0,0),
                         on = 1,
                         orientation = 0,
-                        position = self.experiment.convertFromPresentationStyleCoordinates((-125,-125)),
+                        position = self.experiment.convertFromPresentationToVECoordinates((-125,125)),
                         size = (boxSize,boxSize)
                         )
 
                 # top right box
                 self.secondStim  = Target2D(
                         anchor = 'center',
-                        color = (1,1,1),
+                        color = (0,1,0),
                         on = 1,
                         orientation = 0,
-                        position = self.experiment.convertFromPresentationStyleCoordinates((125,-125)),
+                        position = self.experiment.convertFromPresentationToVECoordinates((125,125)),
                         size = (boxSize,boxSize)
                         )
 
@@ -394,10 +405,10 @@ class ExpPresentation:
 		# bottom left box
                 self.thirdStim  = Target2D(
                         anchor = 'center',
-                        color = (1,1,1),
+                        color = (0,0,1),
                         on = 1,
                         orientation = 0,
-                        position = self.experiment.convertFromPresentationStyleCoordinates((-125,125)),
+                        position = self.experiment.convertFromPresentationToVECoordinates((-125,-125)),
                         size = (boxSize,boxSize)
                         )
 
@@ -407,7 +418,7 @@ class ExpPresentation:
                         color = (1,1,1),
                         on = 1,
                         orientation = 0,
-                        position = self.experiment.convertFromPresentationStyleCoordinates((125,125)),
+                        position = self.experiment.convertFromPresentationToVECoordinates((125,-125)),
                         size = (boxSize,boxSize)
                         )
 
@@ -425,7 +436,7 @@ class ExpPresentation:
                         position = (-100,0)
                         width=0
                 wt = WrappedText(text=message, 
-                                 position=self.experiment.convertFromPresentationStyleCoordinates(position,width),
+                                 position=self.experiment.convertFromPresentationToVECoordinates(position,width),
                                  size=(800, 600),
                                  color=(1,1,1))
                 self.viewport_trial.parameters.stimuli = [wt]
@@ -522,22 +533,45 @@ class ExpPresentation:
                         # And the colour sound
                         playAndWait(trial.colour.sound)
 
+		#
+		# Draw a VisionEgg Rect using the VISAGE drawing functions
+		#
+		# This takes a VE Target2D rect stim and draws it with VISAGE.
+		# It will very likey get confused if things if the stim is not a simple
+		# normally oriantated rectangle.
+		#
+		# Note: Colours will have gone RGB->CIE->RGB->CIE by the end of this
+		#       I don't think we are in the bounds of having to worry about
+		#       floating point issues, I think.
+		#
+		def drawVisionEggRectWithVSG(stim):
+			# Colour from stim defintion, convert to CIE
+			stim_cols = stim.parameters.color
+			rgb = PyVSG.vsgTRIVIAL(stim_cols[0], stim_cols[1], stim_cols[2])
+			cie = vsg.vsgSpaceToSpace(PyVSG.vsgCS_RGB, rgb, PyVSG.vsgCS_CIE1976)
+			vsg.vsgSetDrawColour(cie)
+			
+			pos = self.experiment.convertFromVEtoVSGCoordinates(stim.parameters.position)
+			size = stim.parameters.size
+			vsg.vsgDrawRect(pos[0], pos[1], size[0], size[1])
+			
+		
+
 		# Decide which of our 4 blocks is the odd one out (top left, top right, bottom left, bottom right)
 		oddOne = random.randint(1,4);
+                print "presentExperimentTrial: oddOne=%d" % (oddOne)
+		print "  target is %s" % (targetColour)
+		print "  quest is %s" % (questColour)
 
-		self.firstStim.parameters.color = list(targetColour.asRGB())
-		self.secondStim.parameters.color = list(targetColour.asRGB())
-		self.thirdStim.parameters.color = list(targetColour.asRGB())
-		self.forthStim.parameters.color = list(targetColour.asRGB())
+		# DEBUG, uncomment if you want to check which one
+		# really is the odd one out
+		# questColour.setColourCIE(20, 20, 20)
 
-		if oddOne == 1:
-			self.firstStim.parameters.color = list(questColour.asRGB())
-		elif oddOne == 2:
-			self.secondStim.parameters.color = list(questColour.asRGB())
-		elif oddOne == 3:
-			self.thirdStim.parameters.color = list(questColour.asRGB())
-		elif oddOne == 4:
-			self.forthStim.parameters.color = list(questColour.asRGB())
+		# Set the colours of the stimuli
+		self.firstStim.parameters.color  = (list(questColour.asRGB()) if oddOne == 1 else list(targetColour.asRGB()))
+		self.secondStim.parameters.color = (list(questColour.asRGB()) if oddOne == 2 else list(targetColour.asRGB()))
+		self.thirdStim.parameters.color  = (list(questColour.asRGB()) if oddOne == 3 else list(targetColour.asRGB()))
+		self.forthStim.parameters.color  = (list(questColour.asRGB()) if oddOne == 4 else list(targetColour.asRGB()))
 		
                 # First clear screen and wait for some specified time
                 
@@ -549,23 +583,21 @@ class ExpPresentation:
 
                 time.sleep(self.experiment.preFixationDelay)
 
+		# Show fixation cross
+		
                 # VE:
-                self.presentStimulus(self.viewport_fixation) #show fixation cross
+                self.presentStimulus(self.viewport_fixation)
                 # VISAGE:
-                rgbWhite = PyVSG.vsgTRIVIAL(1.0, 1.0, 1.0)
-                labWhite = vsg.vsgSpaceToSpace(PyVSG.vsgCS_RGB, rgbWhite, PyVSG.vsgCS_CIE1976)
-                
-                vsg.vsgSetDrawColour(labWhite)
-                vsg.vsgDrawRect(0,0,10,2)
-                vsg.vsgDrawRect(0,0,2,10)
+		drawVisionEggRectWithVSG(self.fix1)
+		drawVisionEggRectWithVSG(self.fix2)
                 vsg.vsgSetDisplayPage(0)
                 
                 # Play the audio cue and wait
                 playAudioCue(self)
                 time.sleep(self.experiment.postFixationDelay)
 
-                # VE:
 		# fixation + 4 boxes
+                # VE:
                 self.setAndPresentStimulus([self.fix1,
 					    self.fix2,
 					    self.firstStim,
@@ -574,27 +606,14 @@ class ExpPresentation:
 					    self.forthStim])
                 # VISAGE
                 vsg.vsgSetDrawPage(1)
-                # cross
-                vsg.vsgSetDrawColour(labWhite)
-                vsg.vsgDrawRect(0,0,10,2)
-                vsg.vsgDrawRect(0,0,2,10)
+		drawVisionEggRectWithVSG(self.fix1)
+		drawVisionEggRectWithVSG(self.fix2)
 
 		# Draw the 4 VISAGE boxes
-                vsg.vsgSetDrawColour(targetColour.asCIE())
-                vsg.vsgDrawRect(-125, -125, 100, 100) # top left
-                vsg.vsgDrawRect(125, -125, 100, 100) # top right
-		vsg.vsgDrawRect(-125, 125, 100, 100) # bottom left
-		vsg.vsgDrawRect(125, 125, 100, 100) # bottom right
-
-		vsg.vsgSetDrawColour(questColour.asCIE())
-		if oddOne == 1:
-			vsg.vsgDrawRect(-125, -125, 100, 100)
-		elif oddOne == 2:
-			vsg.vsgDrawRect(125, -125, 100, 100)
-		elif oddOne == 3:
-			vsg.vsgDrawRect(-125, 125, 100, 100)
-		elif oddOne == 4:
-			vsg.vsgDrawRect(125, 125, 100, 100)
+		drawVisionEggRectWithVSG(self.firstStim)
+		drawVisionEggRectWithVSG(self.secondStim)
+		drawVisionEggRectWithVSG(self.thirdStim)
+		drawVisionEggRectWithVSG(self.forthStim)
 
                 # switch to display 1
                 vsg.vsgSetDisplayPage(1)
@@ -677,9 +696,6 @@ class ExpPresentation:
                                 # Time to get the colours
                                 targetColour = trial.colour
                                 questColour = targetColour.getQuestColour()
-
-				print "target is %s" % (targetColour)
-                                print "quest is %s" % (questColour)
 
                                 """This is what's shown on every trial"""
                                 response = self.presentExperimentTrial(curBlock,trial,whichPart, totalExperiments, targetColour, questColour)
