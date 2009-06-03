@@ -144,7 +144,7 @@ class PyVSG:
             self.current_pen = self.current_pen+1
             self.vsgPaletteSet(self.current_pen, colour)
             self.vsgSetPen1(self.current_pen)
-#            print "Current pen is %d (%f, %f, %f)" % (self.current_pen, colour.a, colour.b, colour.c)
+            print "Current pen is %d (%f, %f, %f)" % (self.current_pen, colour.a, colour.b, colour.c)
                 
     """
     Draw a rectangle
@@ -241,6 +241,21 @@ if __name__ == "__main__":
     vsg.vsgDrawRect(0,0,vsg.height/4, vsg.height/4)
 
     rgbBlue = vsgTRIVIAL(0.0, 0.0, 1.0)
+    labBlue = vsg.vsgSpaceToSpace(vsgCS_RGB, rgbBlue, vsgCS_CIE1976)
+    vsg.vsgSetDrawColour(labBlue)
+    vsg.vsgDrawRect(0,0,vsg.height/4 - step , vsg.height/4 - step)
+
+    rgbBlue = vsgTRIVIAL(0.0, 0.0, 0.9)
+    labBlue = vsg.vsgSpaceToSpace(vsgCS_RGB, rgbBlue, vsgCS_CIE1976)
+    vsg.vsgSetDrawColour(labBlue)
+    vsg.vsgDrawRect(0,0,vsg.height/4 - step , vsg.height/4 - step)
+
+    gbBlue = vsgTRIVIAL(0.0, 0.0, 0.8)
+    labBlue = vsg.vsgSpaceToSpace(vsgCS_RGB, rgbBlue, vsgCS_CIE1976)
+    vsg.vsgSetDrawColour(labBlue)
+    vsg.vsgDrawRect(0,0,vsg.height/4 - step , vsg.height/4 - step)
+
+    gbBlue = vsgTRIVIAL(0.0, 0.0, 0.7)
     labBlue = vsg.vsgSpaceToSpace(vsgCS_RGB, rgbBlue, vsgCS_CIE1976)
     vsg.vsgSetDrawColour(labBlue)
     vsg.vsgDrawRect(0,0,vsg.height/4 - step , vsg.height/4 - step)
