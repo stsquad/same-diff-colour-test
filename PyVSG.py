@@ -168,6 +168,16 @@ class PyVSG:
                 print "vsgDrawRect failed"
             
 
+    """
+    Display Strings
+    """
+    def vsgDrawString(self, x, y, string):
+        ptr = c_char_p(string)
+        if self.active:
+            res = self.vsgDll.vsgDrawString(c_double(x), c_double(y), ptr)
+            if res < 0:
+                print "vsgDrawString failed :-("
+
         
 
 """

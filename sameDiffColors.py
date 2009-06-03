@@ -259,10 +259,10 @@ class Exp:
 		
                 self.finalText = "You've come to the end of the experiment.  Thank you for participating."
                 self.instructions = \
-		"""In this experiment you will see four colors arranged in a square. """ \
-		"""One of those colors will be different from the others.  """\
-		"""Your task is to decide which color is different. Before each trial, """\
-		"""you will hear a voice ask which of the colors or which of reds/blues/greens is different."""\
+		"""In this experiment you will see four colors arranged in a square.\n """ \
+		"""One of those colors will be different from the others.\n  """\
+		"""Your task is to decide which color is different. Before each trial,\n """\
+		"""you will hear a voice ask which of the colors or which of reds/blues/greens is different\n."""\
 		"""  Your task is exactly the same regardless of whether you hear a color name or the word "color"\n\n\n"""
 		self.instructions = \
 		    self.instructions + """Use the number keys on the number pad for responding in the direction of the different color:\n
@@ -435,19 +435,38 @@ class ExpPresentation:
                 if position=="center":
                         position = (-100,0)
                         width=0
+
+		vePos = self.experiment.convertFromPresentationToVECoordinates(position,width)
                 wt = WrappedText(text=message, 
-                                 position=self.experiment.convertFromPresentationToVECoordinates(position,width),
+                                 position=vePos,
                                  size=(800, 600),
                                  color=(1,1,1))
                 self.viewport_trial.parameters.stimuli = [wt]
+
+		# Draw on VISAGE - this breaks
+		vsgPos = self.experiment.convertFromVEtoVSGCoordinates(vePos)
+                vsg.vsgSetDrawPage(0)
+		vsg.vsgDrawString(vsgPos[0], vsgPos[1], message)
+		vsg.vsgSetDisplayPage(0)
+		
                 while pygame.event.wait().type != KEYDOWN:
                         self.presentStimulus(self.viewport_trial)
                 
         def showText(self,textToShow):
                 self.text.parameters.text = textToShow
                 self.viewport_trial.parameters.stimuli = [self.text]
+
+		# Draw on VISAGE
+		vePos = self.experiment.convertFromPresentationToVECoordinates((0,0))	
+		vsgPos = self.experiment.convertFromVEtoVSGCoordinates(vePos)
+                vsg.vsgSetDrawPage(0)
+		vsg.vsgDrawString(vsgPos[0], vsgPos[1], textToShow)
+		vsg.vsgSetDisplayPage(0)
+
                 while pygame.event.wait().type != KEYDOWN:
                         self.presentStimulus(self.viewport_trial)
+
+			
 
         # Parse a line of experiment control file
         # to define a colour and it's associated sound
